@@ -1,0 +1,29 @@
+# Example datasource manifest (YAML) - the "obey this" reference.
+# Ship a file like this; fd-open-data-mcp ingests it via `register_datasource`.
+version: "1"
+name: example-stock
+label: Example Stock Datasource
+source_url: https://example.com/stock
+scanner_mode: upstream-curated
+ranking_seed: [0.6, 0.65]          # [quality, accessibility] heuristic seed
+requires: []                        # pip extras needed for fetch (e.g. ["yfinance"])
+functions:
+  - command: get_history
+    category: price-history
+    description: Daily OHLCV price history
+    frequency: daily
+    verified: true
+    parameters:
+      - {name: symbol, type: str, required: true, description: Ticker symbol}
+      - {name: start, type: str, required: false, description: Start date}
+    columns:
+      - {name: open,   type: float, description: Open price}
+      - {name: high,   type: float, description: High price}
+      - {name: low,    type: float, description: Low price}
+      - {name: close,  type: float, description: Close price, frequency: daily}
+      - {name: volume, type: int,   description: Volume}
+concepts:                          # concept hints (column -> concept; measure/entity_type here)
+  - {column: close,  concept: price.close,  entity_type: stock, unit: currency, frequency: daily}
+  - {column: volume, concept: price.volume, entity_type: stock, unit: shares,   frequency: daily}
+fetch:
+  runner: example-stock            # built-in runner name, OR module: "pkg.mod:run"

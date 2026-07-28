@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fd-open-data-protocol"
+dynamic = ["version"]
+description = "The open-data datasource protocol: a manifest contract a datasource exposes to be ingested by fd-open-data-mcp (or any consumer)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "FindDataOfficial" }]
+dependencies = [
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.dynamic]
+version = { attr = "fd_open_data_protocol.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["fd_open_data_protocol", "fd_open_data_protocol.*"]

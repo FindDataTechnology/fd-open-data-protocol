@@ -1,0 +1,24 @@
+# Template datasource manifest - copy this and fill in your datasource.
+version: "1"
+name: <your-datasource-name>
+label: <Human-readable label>
+source_url: <https://your-data-source>
+scanner_mode: upstream-curated     # or manifest-registry / mcp-introspect
+ranking_seed: [0.5, 0.5]          # [quality, accessibility] heuristic seed
+requires: []                      # pip extras needed for fetch (e.g. ["akshare"])
+functions:
+  - command: <your_function>
+    category: <category>
+    description: <what it returns>
+    frequency: <daily|yearly|...> # the function's update cadence
+    verified: true
+    parameters:
+      - {name: symbol, type: str, required: true, description: <param>}
+    columns:
+      # column-level frequency/datasource default to the function's; set to override
+      - {name: <column>, type: <float|int|str>, description: <meaning>}
+concepts:                         # optional: map columns to concepts (measure/entity_type here)
+  - {column: <column>, concept: <concept.code>, entity_type: <stock|country|...>,
+     measure: <nominal_current|real_constant|ppp|...>, unit: <usd|currency|%>, frequency: <yearly>}
+fetch:
+  runner: <your-runner>           # built-in runner name, OR module: "pkg.mod:run"
