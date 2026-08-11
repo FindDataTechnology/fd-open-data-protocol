@@ -27,6 +27,7 @@ ENTITY_TYPE_VOCABULARY: tuple[str, ...] = (
     "crypto",            # Cryptocurrencies (btc, eth)
     "organization",      # General organizations
     "industry",          # Industry classifications (shenwan_1_01, gics_10)
+    "exchange",          # Securities exchanges / market venues (XNYS, XNAS, XASE)
     "company",           # Public companies with sector (AAPL, TSLA)
 )
 
