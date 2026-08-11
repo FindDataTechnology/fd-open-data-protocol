@@ -62,15 +62,135 @@ my-source = "my_pkg.catalog:CATALOG"
 
 ## Schema
 
-- **`DatasourceManifest`**: name, label, source_url, scanner_mode, ranking_seed, functions[], concepts[], fetch.
+- **`DatasourceManifest`**: name, label, source_url, scanner_mode, ranking_seed, functions[], concepts[], entities[], entity_definitions[], relationships[], fetch.
 - **`FunctionSpec`**: command, category, description, parameters[], columns[], frequency, verified.
 - **`ColumnSpec`**: name, type, description, meaning, semantic_type, `frequency` + `datasource` (column-level).
 - **`ConceptHint`**: column, concept, `entity_type`, `measure`, unit, frequency, confidence.
+- **`EntitySpec`**: entity_type, coverage ("universe"|"explicit"), codes[] (for explicit coverage).
+- **`Entity`**: entity_type, code, name_en, name_zh, metadata{}, relationships[].
+- **`EntityRelationship`**: target_entity_type, target_code, relation_type, confidence, metadata{}.
+- **`RelationshipSpec`**: relation_type, source_entity_type, target_entity_type, resolver_module.
 - **`FetchRef`**: runner (built-in name) | module (`"pkg.mod:func"`).
 
 `measure` + `entity_type` are **concept-level** (disambiguate GDP-nominal vs
 GDP-PPP; stock close vs fund NAV). Column-level `frequency`/`datasource` support
 composite functions whose columns come from different sources at different cadences.
+
+## Entity Definitions
+
+The protocol supports two ways to declare entities:
+
+### 1. Coverage Declaration (`entities[]`)
+
+Declares which entity types the datasource covers:
+
+```yaml
+entities:
+  - entity_type: stock
+    coverage: explicit
+    codes: [AAPL, MSFT, GOOGL]
+```
+
+- `coverage: "universe"` - datasource can fetch data for all entities of this type
+- `coverage: "explicit"` - datasource only covers the listed codes
+
+### 2. Entity Metadata (`entity_definitions[]`)
+
+Defines canonical entity metadata (names, attributes, relationships):
+
+```yaml
+entity_definitions:
+  - entity_type: stock
+    code: AAPL
+    name_en: Apple Inc.
+    name_zh: 苹果公司
+    metadata:
+      exchange: NASDAQ
+      sector: Technology
+    relationships:
+      - target_entity_type: industry
+        target_code: gics_10
+        relation_type: belongs_to
+```
+
+When included, entities are registered in the ontology database during `register_datasource()`.
+
+### Canonical Entity Types
+
+All `entity_type` values must be from this vocabulary:
+
+| Type | Description | Example IDs |
+|------|-------------|-------------|
+| `country` | ISO codes | CN, US, JP |
+| `city` | Municipalities | beijing, shanghai |
+| `stock` | A-shares | 600000.SH, 000001.SZ |
+| `fund` | ETFs/funds | etf_code, fund_code |
+| `bond` | Bonds | bond_code |
+| `index` | Indices | SH000001, SZ399001 |
+| `future` | Futures | cu2412, rb2401 |
+| `crypto` | Cryptocurrencies | btc, eth |
+| `organization` | General orgs | org_code |
+| `industry` | Classifications | shenwan_1_01, gics_10 |
+| `company` | Public companies | AAPL, TSLA |
+
+## Manifest Declaration Requirement
+
+**Every fd-* datasource package MUST declare a `DatasourceManifest` via one of the following mechanisms:**
+
+1. **Python module**: Expose a `CATALOG` dict in a module (e.g., `catalog.py`) that conforms to the `DatasourceManifest` schema
+2. **YAML/JSON file**: Place a manifest file at the package root (e.g., `catalog.yaml` or `catalog.json`)
+3. **Entry-point declaration**: Register the manifest path in `pyproject.toml` under `[project.entry-points."fd_open_data_mcp.datasources"]`
+
+The declaration **SHALL** be discoverable by `fd-open-data-mcp`'s auto-discovery mechanism (`register-discovered` command). Packages without a CATALOG declaration **SHALL NOT** be considered compliant with the fd-open-data-protocol.
+
+### Recommended Package Structure
+
+```
+my-datasource/
+├── pyproject.toml          # declares entry-point
+└── my_pkg/
+    ├── __init__.py
+    └── catalog.py          # exposes CATALOG = { ... }
+```
+
+### Entry-Point Declaration
+
+In your `pyproject.toml`:
+
+```toml
+[project.entry-points."fd_open_data_mcp.datasources"]
+my-source = "my_pkg.catalog:CATALOG"
+```
+
+After `pip install my-pkg`, the package is automatically discoverable:
+
+```bash
+fd-open-data-mcp register-discovered
+```
+
+### Auto-Discovery Flow
+
+1. **Install package** → `pip install my-datasource`
+2. **Entry-point registered** → setuptools records `my-source = "my_pkg.catalog:CATALOG"`
+3. **Auto-discover** → `fd-open-data-mcp register-discovered` scans all entry-points
+4. **Load manifest** → `load_catalog()` validates and parses the CATALOG dict
+5. **Register to ontology** → `register_datasource()` upserts sources/functions/columns/concepts
+
+### Compliance Checklist
+
+Before publishing a new datasource package, ensure:
+
+- [ ] Package exposes a `CATALOG` dict or manifest file
+- [ ] `pyproject.toml` declares entry-point under `fd_open_data_mcp.datasources` group
+- [ ] CATALOG conforms to `DatasourceManifest` schema (version, name, label, functions[], concepts[], fetch)
+- [ ] `load_catalog()` can successfully parse the manifest
+- [ ] `fd-open-data-mcp register-discovered` discovers and registers the package
+
+### Working Examples
+
+- **fd-world**: `fd_world/catalog.py` + entry-point in `pyproject.toml`
+- **fd-cn-gov**: `fd_cn_gov/catalog.py` + entry-point in `pyproject.toml`
+- **fd-cn-report**: `catalog.py` + entry-point in `pyproject.toml`
 
 ## Template
 

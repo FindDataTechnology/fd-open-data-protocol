@@ -32,6 +32,15 @@ CATALOG = {
         {"column": "NY.GDP.MKTP.CD", "concept": "gdp", "entity_type": "country",
          "measure": "nominal_current", "unit": "usd", "frequency": "yearly"},
     ],
+    "entities": [
+        # entity coverage declaration
+        {"entity_type": "country", "coverage": "universe"},
+    ],
+    "relationships": [
+        # relationship resolution declaration
+        {"relation_type": "located_in", "source_entity_type": "city",
+         "target_entity_type": "country", "resolver_module": "example_macro.resolve_city_country"},
+    ],
     "fetch": {"runner": "example-macro"},
 }
 

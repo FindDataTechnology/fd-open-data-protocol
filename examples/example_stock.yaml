@@ -22,8 +22,45 @@ functions:
       - {name: low,    type: float, description: Low price}
       - {name: close,  type: float, description: Close price, frequency: daily}
       - {name: volume, type: int,   description: Volume}
+    real_sources:                    # real data sources this function calls
+      - name: yahoo_finance
+        priority: 0                  # primary source
+      - name: alpha_vantage
+        priority: 1                  # failover if yahoo_finance is banned
 concepts:                          # concept hints (column -> concept; measure/entity_type here)
   - {column: close,  concept: price.close,  entity_type: stock, unit: currency, frequency: daily}
   - {column: volume, concept: price.volume, entity_type: stock, unit: shares,   frequency: daily}
+entities:                          # entity coverage declaration
+  - entity_type: stock
+    coverage: explicit
+    codes: [AAPL, MSFT, GOOGL]
+entity_definitions:                # canonical entity metadata (optional)
+  - entity_type: stock
+    code: AAPL
+    name_en: Apple Inc.
+    name_zh: 苹果公司
+    metadata:
+      exchange: NASDAQ
+      sector: Technology
+    relationships:
+      - target_entity_type: industry
+        target_code: gics_10
+        relation_type: belongs_to
+  - entity_type: industry
+    code: gics_10
+    name_en: Information Technology
+    name_zh: 信息技术
+    metadata:
+      classification_system: gics
+      level: 1
+relationships:                     # relationship resolution declaration
+  - relation_type: listed_as
+    source_entity_type: company
+    target_entity_type: stock
+    resolver_module: example_stock.resolve_listed_as
+  - relation_type: operates_in
+    source_entity_type: company
+    target_entity_type: industry
+    resolver_module: example_stock.resolve_industry
 fetch:
   runner: example-stock            # built-in runner name, OR module: "pkg.mod:run"

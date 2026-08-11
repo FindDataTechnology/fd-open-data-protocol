@@ -20,5 +20,27 @@ functions:
 concepts:                         # optional: map columns to concepts (measure/entity_type here)
   - {column: <column>, concept: <concept.code>, entity_type: <stock|country|...>,
      measure: <nominal_current|real_constant|ppp|...>, unit: <usd|currency|%>, frequency: <yearly>}
+entities:                         # optional: declare which entity types this datasource covers
+  - entity_type: <stock|country|industry|...>
+    coverage: <universe|explicit>  # universe=all entities, explicit=only listed codes
+    codes: [<CODE1>, <CODE2>]      # required if coverage=explicit
+entity_definitions:               # optional: canonical entity metadata (names, attributes, relationships)
+  - entity_type: <stock|country|industry|...>
+    code: <unique-identifier>
+    name_en: <English name>
+    name_zh: <Chinese name>
+    metadata:                      # flexible metadata (sector, region, exchange, classification_system, etc.)
+      key1: value1
+      key2: value2
+    relationships:                 # optional: links to other entities
+      - target_entity_type: <industry|sector|country|...>
+        target_code: <target-code>
+        relation_type: <belongs_to|has_sector|located_in|...>
+        confidence: 0.9
+relationships:                    # optional: declare how to resolve relationships
+  - relation_type: <listed_as|operates_in|located_in|...>
+    source_entity_type: <company|stock|city|...>
+    target_entity_type: <stock|industry|country|...>
+    resolver_module: <pkg.mod:func>  # optional: Python function returning [(source, target), ...]
 fetch:
   runner: <your-runner>           # built-in runner name, OR module: "pkg.mod:run"
