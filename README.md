@@ -8,6 +8,25 @@ The **open-data datasource protocol**: a manifest contract a datasource exposes
 
 **Ship one manifest file -> the datasource is added. No consumer-side wiring.**
 
+## One-click install
+
+This library is a dependency of `fd-open-data-mcp` (pulled in transitively). To
+install the **entire** finddata stack (hub + every datasource + ontology DB):
+
+```bash
+pip install "fd-open-data-mcp[data]" fd-polygon fd-cn-report
+
+fd-open-data-mcp migrate \
+  && fd-open-data-mcp import-catalog \
+  && fd-open-data-mcp consume-concepts \
+  && fd-open-data-mcp propose-bindings \
+  && fd-open-data-mcp seed-entities \
+  && fd-open-data-mcp generate-schedules \
+  && fd-open-data-mcp register-discovered
+
+fd-open-data-mcp serve
+```
+
 ## The manifest
 
 A YAML/JSON file (or a Python module exposing `CATALOG`):

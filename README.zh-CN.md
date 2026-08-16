@@ -8,6 +8,25 @@
 
 **提交一个清单文件 -> 数据源即被接入。消费者侧无需任何接线。**
 
+## 一键安装
+
+本库是 `fd-open-data-mcp` 的依赖（被传递引入）。安装**整个** finddata 栈
+（枢纽 + 全部数据源 + 本体数据库）：
+
+```bash
+pip install "fd-open-data-mcp[data]" fd-polygon fd-cn-report
+
+fd-open-data-mcp migrate \
+  && fd-open-data-mcp import-catalog \
+  && fd-open-data-mcp consume-concepts \
+  && fd-open-data-mcp propose-bindings \
+  && fd-open-data-mcp seed-entities \
+  && fd-open-data-mcp generate-schedules \
+  && fd-open-data-mcp register-discovered
+
+fd-open-data-mcp serve
+```
+
 ## 清单 (The manifest)
 
 一个 YAML/JSON 文件（或暴露 `CATALOG` 的 Python 模块）：
