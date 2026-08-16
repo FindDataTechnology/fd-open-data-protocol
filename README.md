@@ -1,5 +1,7 @@
 # fd-open-data-protocol
 
+**English** | [中文](README.zh-CN.md)
+
 The **open-data datasource protocol**: a manifest contract a datasource exposes
 (datasource + functions + columns + concept hints + fetch reference) so that
 `fd-open-data-mcp` - or any consumer - can ingest it via `register_datasource`.
