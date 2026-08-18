@@ -5,4 +5,4 @@ concept hints + fetch reference) so that fd-open-data-mcp - or any consumer -
 can ingest it via ``register_datasource``. Ship one manifest file -> the
 datasource is added; no consumer-side wiring.
 """
-__version__ = "0.1.0"
+__version__ = "0.2.0"
