@@ -3,3 +3,19 @@ __pycache__/
 *.egg-info/
 .venv/
 .pytest_cache/
+
+# Env / secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# Local databases / runtime state
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
