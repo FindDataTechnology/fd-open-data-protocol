@@ -130,3 +130,38 @@ def test_example_stock_has_real_sources():
     assert len(m.functions[0].real_sources) == 2
     assert m.functions[0].real_sources[0].name == "yahoo_finance"
     assert m.functions[0].real_sources[1].name == "alpha_vantage"
+
+
+def _manifest(**extra):
+    base = {"name": "s", "label": "S", "functions": [{"command": "f", "columns": []}]}
+    return {**base, **extra}
+
+
+def test_concept_hint_commodity_loads():
+    """A `commodity` concept hint (e.g. cisa-steel) loads."""
+    m = load_catalog(_manifest(concepts=[
+        {"column": "steel_price", "concept": "price.steel", "entity_type": "commodity"},
+    ]))
+    assert m.concepts[0].entity_type == "commodity"
+
+
+def test_entity_coverage_person_loads():
+    """A `person` entity coverage entry (e.g. fund managers) loads."""
+    m = load_catalog(_manifest(entities=[{"entity_type": "person", "coverage": "universe"}]))
+    assert m.entities[0].entity_type == "person"
+
+
+def test_unknown_entity_type_rejected():
+    """An entity type outside the vocabulary is rejected, naming the vocabulary."""
+    from pydantic import ValidationError
+
+    src = {"name": "s", "label": "S", "functions": []}
+    cases = {
+        "entities": {**src, "entities": [{"entity_type": "continent", "coverage": "universe"}]},
+        "concepts": {**src, "concepts": [
+            {"column": "c", "concept": "x", "entity_type": "continent"}]},
+    }
+    for label, manifest in cases.items():
+        with pytest.raises(ValidationError) as exc:
+            load_catalog(manifest)
+        assert "commodity" in str(exc.value) and "person" in str(exc.value), label

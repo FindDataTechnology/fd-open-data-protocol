@@ -29,6 +29,8 @@ ENTITY_TYPE_VOCABULARY: tuple[str, ...] = (
     "industry",          # Industry classifications (shenwan_1_01, gics_10)
     "exchange",          # Securities exchanges / market venues (XNYS, XNAS, XASE)
     "company",           # Public companies with sector (AAPL, TSLA)
+    "commodity",         # Raw goods (steel, oil, grain)
+    "person",            # Human entities (fund managers); logical-only, no taxonomy table
 )
 
 
@@ -182,6 +184,15 @@ class EntitySpec(BaseModel):
     entity_type: str
     coverage: str = "universe"  # "universe" or "explicit"
     codes: Optional[list[str]] = None  # required if coverage="explicit"
+
+    @field_validator("entity_type")
+    @classmethod
+    def validate_entity_type(cls, v: str) -> str:
+        if v not in ENTITY_TYPE_VOCABULARY:
+            raise ValueError(
+                f"Invalid entity_type '{v}'. Must be one of: {', '.join(ENTITY_TYPE_VOCABULARY)}"
+            )
+        return v
 
 
 class RelationshipSpec(BaseModel):
