@@ -1,0 +1,99 @@
+# FindData vocabulary — entity types.
+#
+# The closed set of `entity_type` values a datasource manifest may declare.
+# This file is the source of truth (previously a hardcoded tuple in schema.py);
+# the loader in fd_open_data_protocol/vocabulary.py reads it.
+#
+# URIs: https://schema.finddata.tech/entity-type/<id>
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: entity-type
+entries:
+  - id: country
+    label_en: Country
+    label_zh: 国家
+    description: >-
+      Sovereign states and dependent territories, keyed by ISO 3166-1 alpha-2
+      (CN, US, JP). Aligns with schema.org Country, Data Commons Country and
+      World Bank country codes (ISO3 via wbgapi identifiers).
+  - id: city
+    label_en: City
+    label_zh: 城市
+    description: >-
+      Municipalities and administrative cities (beijing, shanghai). Aligns with
+      schema.org City and Data Commons City, anchored by DCID or GeoNames id.
+  - id: stock
+    label_en: Stock
+    label_zh: 股票
+    description: >-
+      Listed equity issues, keyed by exchange-suffixed ticker (600000.SH,
+      000001.SZ, AAPL). Aligns with schema.org Corporation at the issuer level;
+      the issue itself has no schema.org type (use financials.* concepts).
+  - id: fund
+    label_en: Fund
+    label_zh: 基金
+    description: >-
+      Collective investment vehicles — mutual funds and ETFs (etf_code,
+      fund_code). Aligns with schema.org InvestmentFund. NAV-series data is
+      keyed here, not on `stock`.
+  - id: bond
+    label_en: Bond
+    label_zh: 债券
+    description: >-
+      Debt instruments (bond_code). Partial schema.org alignment only; coupon
+      and yield concepts carry the economics.
+  - id: index
+    label_en: Index
+    label_zh: 指数
+    description: >-
+      Market indices (SH000001, SZ399001, SPX). Aligns with Data Commons
+      StatisticalVariable contexts; schema.org has no index type.
+  - id: future
+    label_en: Future
+    label_zh: 期货
+    description: >-
+      Exchange-traded futures contracts (cu2412, rb2401). Contract identity
+      includes the delivery month, so codes rotate.
+  - id: crypto
+    label_en: Cryptocurrency
+    label_zh: 数字货币
+    description: >-
+      Crypto assets (btc, eth). Aligns with Data Commons crypto DCIDs and the
+      Wikidata QID of the asset.
+  - id: organization
+    label_en: Organization
+    label_zh: 组织
+    description: >-
+      General non-commercial organizations (agencies, associations). Aligns
+      with schema.org Organization. Use `company` for issuers with a sector.
+  - id: industry
+    label_en: Industry
+    label_zh: 行业
+    description: >-
+      Industry classification nodes (shenwan_1_01, gics_10). Aligns with
+      Wikidata industry QIDs; classification system is carried in metadata.
+  - id: exchange
+    label_en: Exchange
+    label_zh: 交易所
+    description: >-
+      Securities exchanges and trading venues, keyed by MIC (XNYS, XNAS, XASE)
+      or FindData shorthand (SSE, SZSE). Aligns with ISO 10383 MIC.
+  - id: company
+    label_en: Company
+    label_zh: 公司
+    description: >-
+      Public operating companies carrying a sector (AAPL, TSLA). Aligns with
+      schema.org Corporation and the Wikidata company QID.
+  - id: commodity
+    label_en: Commodity
+    label_zh: 大宗商品
+    description: >-
+      Tradable raw goods (steel, oil, grain). Aligns with Wikidata material
+      QIDs; grade and delivery basis live in metadata.
+  - id: person
+    label_en: Person
+    label_zh: 人物
+    description: >-
+      Human entities — fund managers, officers (logical-only; no taxonomy
+      table). Aligns with schema.org Person and the Wikidata QID.

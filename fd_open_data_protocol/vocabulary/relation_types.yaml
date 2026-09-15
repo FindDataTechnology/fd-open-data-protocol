@@ -1,0 +1,73 @@
+# FindData vocabulary — entity relationship types.
+#
+# The closed set of `relation_type` values an entity relationship may declare
+# (in a manifest's `entity_definitions[].relationships` or a
+# `RelationshipSpec`). Ids are snake_case. `source_types`/`target_types` give
+# the expected domain and range in the canonical entity-type vocabulary; they
+# describe, they do not restrict.
+#
+# URIs: https://schema.finddata.tech/relation-type/<id>
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: relation-type
+entries:
+  - id: belongs_to
+    label_en: Belongs To
+    label_zh: 属于
+    description: >-
+      The source is a member of the target grouping (stock -> industry,
+      stock -> index constituent set).
+    source_types: [stock, company, fund]
+    target_types: [industry, index]
+  - id: listed_as
+    label_en: Listed As
+    label_zh: 上市于
+    description: >-
+      The issuer's security is listed on a venue (company -> exchange).
+    source_types: [company, stock]
+    target_types: [exchange]
+  - id: located_in
+    label_en: Located In
+    label_zh: 位于
+    description: >-
+      Physical or administrative location (city -> country, company -> country).
+    source_types: [city, company, exchange, organization]
+    target_types: [country]
+  - id: traded_on
+    label_en: Traded On
+    label_zh: 交易于
+    description: >-
+      The instrument trades on a venue (stock/fund/future -> exchange).
+    source_types: [stock, fund, future, bond, commodity]
+    target_types: [exchange]
+  - id: has_sector
+    label_en: Has Sector
+    label_zh: 所属板块
+    description: >-
+      The company operates in the given sector (company -> industry). Distinct
+      from belongs_to: sector is a company attribute, not a taxonomy membership.
+    source_types: [company]
+    target_types: [industry]
+  - id: operates_in
+    label_en: Operates In
+    label_zh: 经营于
+    description: >-
+      The entity conducts business in a market or jurisdiction
+      (company -> country, company -> industry).
+    source_types: [company, organization]
+    target_types: [country, industry]
+  - id: manages
+    label_en: Manages
+    label_zh: 管理
+    description: >-
+      A person is responsible for an entity (person -> fund, person -> company).
+    source_types: [person]
+    target_types: [fund, company, organization]
+  - id: issued_by
+    label_en: Issued By
+    label_zh: 发行方
+    description: >-
+      The instrument was issued by the entity (stock/bond/fund -> company).
+    source_types: [stock, bond, fund]
+    target_types: [company, organization]

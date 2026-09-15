@@ -1,0 +1,51 @@
+# FindData vocabulary — crosswalk assertions (Data Commons + World Bank).
+#
+# Each mapping asserts that a FindData Variable (identified by its five-field
+# identity tuple) corresponds to a term in an external vocabulary, with a
+# SKOS-style relation and a confidence. `import-crosswalks` ingests these into
+# the MCP `concept_mappings` table with provenance `registry`.
+#
+# Relation types: exact | close | broader | narrower | related
+# (skos:exactMatch / closeMatch / broadMatch / narrowMatch / relatedMatch).
+#
+# URIs for the mapped Variables themselves are Phase 4; this release carries
+# only family URIs.
+version: "2026.09"
+kind: crosswalk
+mappings:
+  # --- Population -------------------------------------------------------------
+  - code: population.total
+    entity_type: country
+    measure: ""
+    unit: persons
+    frequency: yearly
+    vocabulary: datacommons
+    term: Count_Person
+    relation: exact
+    confidence: 1.0
+    note: Data Commons' generic population StatisticalVariable.
+
+  - code: population.total
+    entity_type: country
+    measure: ""
+    unit: persons
+    frequency: yearly
+    vocabulary: worldbank
+    term: SP.POP.TOTL
+    relation: exact
+    confidence: 1.0
+    note: World Bank "Population, total".
+
+  # --- GDP --------------------------------------------------------------------
+  - code: gdp
+    entity_type: country
+    measure: nominal_current
+    unit: usd
+    frequency: yearly
+    vocabulary: worldbank
+    term: NY.GDP.MKTP.CD
+    relation: exact
+    confidence: 1.0
+    note: World Bank "GDP (current US$)" — the nominal current-USD variable only;
+      the real/PPP/per-capita variants are separate Variables with their own
+      external terms (NY.GDP.MKTP.KD, NY.GDP.PCAP.CD, NY.GDP.PCAP.PP.CD).

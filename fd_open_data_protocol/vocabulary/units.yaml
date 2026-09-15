@@ -1,0 +1,94 @@
+# FindData vocabulary — units of measure.
+#
+# Reference registry for the `unit` field of a Variable. Non-monetary units
+# carry their UN/CEFACT Recommendation 20 code; currencies carry their ISO 4217
+# alpha code. Ids are the lowercase strings concepts actually declare, so a
+# Variable's unit can be resolved against this file directly.
+#
+# URIs: https://schema.finddata.tech/unit/<id>
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: unit
+entries:
+  # --- Monetary ---------------------------------------------------------------
+  - id: currency
+    label_en: Currency (unspecified)
+    label_zh: 货币（未指定）
+    description: >-
+      A monetary amount whose currency is implied by the entity or source.
+      Used where the source does not pin a specific ISO 4217 code.
+    un_cefact_code: C62
+    aliases: [currency_cny]
+  - id: usd
+    label_en: United States Dollar
+    label_zh: 美元
+    iso4217: USD
+  - id: cny
+    label_en: Chinese Yuan
+    label_zh: 人民币
+    iso4217: CNY
+  - id: eur
+    label_en: Euro
+    label_zh: 欧元
+    iso4217: EUR
+  - id: jpy
+    label_en: Japanese Yen
+    label_zh: 日元
+    iso4217: JPY
+  - id: hkd
+    label_en: Hong Kong Dollar
+    label_zh: 港币
+    iso4217: HKD
+  - id: gbp
+    label_en: Pound Sterling
+    label_zh: 英镑
+    iso4217: GBP
+  - id: krw
+    label_en: South Korean Won
+    label_zh: 韩元
+    iso4217: KRW
+  - id: international
+    label_en: International Dollar
+    label_zh: 国际元
+    description: >-
+      A hypothetical unit of currency with the purchasing power of the US
+      dollar in the United States, used for PPP comparisons.
+    un_cefact_code: C62
+
+  # --- Counts ----------------------------------------------------------------
+  - id: persons
+    label_en: Persons
+    label_zh: 人
+    description: A count of human beings.
+    un_cefact_code: C62
+  - id: shares
+    label_en: Shares
+    label_zh: 股
+    description: A count of securities units.
+    un_cefact_code: C62
+  - id: index
+    label_en: Index Points
+    label_zh: 指数点
+    description: >-
+      Dimensionless level of an index series; meaningful only relative to the
+      index's base.
+    un_cefact_code: C62
+  - id: kt
+    label_en: Kilotonne
+    label_zh: 千吨
+    description: One thousand metric tonnes, the unit in which World Bank reports CO2.
+    un_cefact_code: KTN
+
+  # --- Ratios and durations ---------------------------------------------------
+  - id: percent
+    label_en: Percent
+    label_zh: 百分比
+    description: A ratio expressed per hundred.
+    un_cefact_code: P1
+    aliases: ["%"]
+  - id: years
+    label_en: Years
+    label_zh: 年
+    description: A duration measured in calendar years.
+    un_cefact_code: ANN

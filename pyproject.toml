@@ -23,3 +23,8 @@ version = { attr = "fd_open_data_protocol.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["fd_open_data_protocol", "fd_open_data_protocol.*"]
+
+# The semantic vocabulary ships as package data so `load_vocabulary()` works
+# from an installed copy, outside any checkout.
+[tool.setuptools.package-data]
+fd_open_data_protocol = ["vocabulary/*.yaml", "vocabulary/crosswalks/*.yaml"]

@@ -10,28 +10,70 @@ entity metadata (names, attributes, relationships) in the ontology database.
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from functools import lru_cache
+from typing import Any, Iterable, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
 
-# Canonical entity type vocabulary - all entity_type values must be in this set
-ENTITY_TYPE_VOCABULARY: tuple[str, ...] = (
-    "country",           # ISO codes (CN, US, JP)
-    "city",              # Municipalities (beijing, shanghai)
-    "stock",             # A-shares (600000.SH, 000001.SZ)
-    "fund",              # ETFs/funds (etf_code, fund_code)
-    "bond",              # Bonds (bond_code)
-    "index",             # Indices (SH000001, SZ399001)
-    "future",            # Futures (cu2412, rb2401)
-    "crypto",            # Cryptocurrencies (btc, eth)
-    "organization",      # General organizations
-    "industry",          # Industry classifications (shenwan_1_01, gics_10)
-    "exchange",          # Securities exchanges / market venues (XNYS, XNAS, XASE)
-    "company",           # Public companies with sector (AAPL, TSLA)
-    "commodity",         # Raw goods (steel, oil, grain)
-    "person",            # Human entities (fund managers); logical-only, no taxonomy table
-)
+@lru_cache(maxsize=1)
+def _concept_family_ids() -> frozenset[str]:
+    """Concept family ids from the shipped vocabulary (loaded once per process)."""
+    from fd_open_data_protocol.vocabulary import load_vocabulary
+
+    return frozenset(load_vocabulary().ids("concept"))
+
+
+class _EntityTypeVocabulary:
+    """Lazy, file-sourced view of ``vocabulary/entity_types.yaml``.
+
+    Replaces the hardcoded tuple of entity types while keeping the public name
+    and the operations callers use (membership, iteration, ``len``, ``join``).
+    The file is read on first use, not at import time. An override can be
+    pinned for tests via :func:`set_entity_type_vocabulary`.
+    """
+
+    def __init__(self) -> None:
+        self._override: Optional[tuple[str, ...]] = None
+        self._cache: Optional[tuple[str, ...]] = None
+
+    def _values(self) -> tuple[str, ...]:
+        if self._override is not None:
+            return self._override
+        if self._cache is None:
+            from fd_open_data_protocol.vocabulary import load_vocabulary
+
+            self._cache = load_vocabulary().entity_type_ids()
+        return self._cache
+
+    def set(self, values: Optional[Iterable[str]] = None) -> None:
+        """Pin the vocabulary to ``values``, or reset to file-sourced when None."""
+        self._override = tuple(values) if values is not None else None
+
+    def __contains__(self, item: object) -> bool:
+        return item in self._values()
+
+    def __iter__(self):
+        return iter(self._values())
+
+    def __len__(self) -> int:
+        return len(self._values())
+
+    def __getitem__(self, index):
+        return self._values()[index]
+
+    def __repr__(self) -> str:
+        return repr(self._values())
+
+
+# Canonical entity type vocabulary - all entity_type values must be in this set.
+# Sourced from the shipped vocabulary file; see fd_open_data_protocol.vocabulary.
+ENTITY_TYPE_VOCABULARY = _EntityTypeVocabulary()
+
+
+def set_entity_type_vocabulary(values: Optional[Iterable[str]] = None) -> None:
+    """Test escape hatch: pin the entity-type vocabulary, or reset to file-sourced."""
+    ENTITY_TYPE_VOCABULARY.set(values)
 
 
 class EntityRelationship(BaseModel):
@@ -158,6 +200,9 @@ class ConceptHint(BaseModel):
     unit: Optional[str] = None
     frequency: Optional[str] = None
     confidence: float = 0.9
+    # Optional reference to a concept family in vocabulary/concepts.yaml, tying
+    # this concept to the two-level semantic model. Omitted = no family check.
+    concept_family: Optional[str] = None
 
     @field_validator("entity_type")
     @classmethod
@@ -165,6 +210,18 @@ class ConceptHint(BaseModel):
         if v not in ENTITY_TYPE_VOCABULARY:
             raise ValueError(
                 f"Invalid entity_type '{v}'. Must be one of: {', '.join(ENTITY_TYPE_VOCABULARY)}"
+            )
+        return v
+
+    @field_validator("concept_family")
+    @classmethod
+    def validate_concept_family(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if v not in _concept_family_ids():
+            raise ValueError(
+                f"Unknown concept family '{v}'. Must be one of: "
+                f"{', '.join(sorted(_concept_family_ids()))}"
             )
         return v
 

@@ -86,7 +86,7 @@ my-source = "my_pkg.catalog:CATALOG"
 - **`DatasourceManifest`**: name, label, source_url, scanner_mode, ranking_seed, functions[], concepts[], entities[], entity_definitions[], relationships[], fetch.
 - **`FunctionSpec`**: command, category, description, parameters[], columns[], frequency, verified.
 - **`ColumnSpec`**: name, type, description, meaning, semantic_type, `frequency` + `datasource` (column-level).
-- **`ConceptHint`**: column, concept, `entity_type`, `measure`, unit, frequency, confidence.
+- **`ConceptHint`**: column, concept, `entity_type`, `measure`, unit, frequency, confidence, `concept_family` (optional).
 - **`EntitySpec`**: entity_type, coverage ("universe"|"explicit"), codes[] (for explicit coverage).
 - **`Entity`**: entity_type, code, name_en, name_zh, metadata{}, relationships[].
 - **`EntityRelationship`**: target_entity_type, target_code, relation_type, confidence, metadata{}.
@@ -136,9 +136,33 @@ entity_definitions:
 
 When included, entities are registered in the ontology database during `register_datasource()`.
 
+#### Reserved metadata key: `external_ids`
+
+An entity definition may anchor itself in an external entity graph under the
+reserved metadata key `external_ids`. Registration persists each entry as a
+per-source identifier, so consumers can resolve the external id back to the
+local entity.
+
+```yaml
+entity_definitions:
+  - entity_type: country
+    code: CN
+    name_en: China
+    metadata:
+      external_ids:
+        wikidata: Q148          # Wikidata QID (Q followed by digits)
+        datacommons: country/CHN  # Data Commons DCID
+```
+
+Supported anchor sources are `wikidata` (QID, validated as `Q<digits>`) and
+`datacommons` (non-empty DCID). A malformed or unknown anchor is logged and
+skipped — it never fails registration.
+
 ### Canonical Entity Types
 
-All `entity_type` values must be from this vocabulary:
+The entity-type vocabulary is defined by
+[`fd_open_data_protocol/vocabulary/entity_types.yaml`](fd_open_data_protocol/vocabulary/entity_types.yaml)
+(14 types) and is the authority for manifest validation:
 
 | Type | Description | Example IDs |
 |------|-------------|-------------|
@@ -152,7 +176,69 @@ All `entity_type` values must be from this vocabulary:
 | `crypto` | Cryptocurrencies | btc, eth |
 | `organization` | General orgs | org_code |
 | `industry` | Classifications | shenwan_1_01, gics_10 |
+| `exchange` | Exchanges / venues | XNYS, XNAS, SSE |
 | `company` | Public companies | AAPL, TSLA |
+| `commodity` | Raw goods | steel, oil, grain |
+| `person` | Humans (fund managers) | person_code |
+
+## Semantic vocabulary
+
+The protocol ships the publishable semantic core of FindData as versioned YAML
+under [`fd_open_data_protocol/vocabulary/`](fd_open_data_protocol/vocabulary/):
+
+| File | Registry |
+|------|----------|
+| `entity_types.yaml` | entity types (the manifest vocabulary above) |
+| `concepts.yaml` | concept families + their seeded Variables |
+| `qualifiers.yaml` | qualifiers (nominal_current, real_constant, ppp, per_capita, growth, ...) |
+| `units.yaml` | units of measure (UN/CEFACT codes + ISO 4217 currencies) |
+| `relation_types.yaml` | entity relationship types |
+| `event_types.yaml` | event types (empty in this release) |
+| `crosswalks/*.yaml` | Variable ↔ external-vocabulary assertions |
+
+The vocabulary files ship as package data (`0.3.0`+), so `load_vocabulary()`
+works from an installed wheel with no checkout on disk.
+
+```python
+from fd_open_data_protocol.vocabulary import load_vocabulary, validate_vocabulary
+
+vocab = load_vocabulary()                    # shipped files
+vocab = load_vocabulary("/path/to/dir")      # or an explicit directory
+vocab.version                                # release version of the file set
+vocab.get("concept", "GDP").uri              # https://schema.finddata.tech/concept/GDP
+vocab.entity_type_ids()                      # the manifest entity-type vocabulary
+vocab.seeded_variables()                     # Variables a family declares
+errors = validate_vocabulary()               # [] when the file set is valid
+```
+
+Every entry carries a stable URI of the form
+`https://schema.finddata.tech/<kind>/<Id>`, where `<kind>` is one of
+`entity-type`, `concept`, `qualifier`, `unit`, `relation-type`, `event-type`.
+
+**Stability rules.** A URI is never reassigned to a different meaning and
+entries are never deleted. Retirement is expressed with a `superseded_by`
+pointer to the successor entry, which keeps the URI resolvable. The file set
+carries one release `version`, and the loader rejects a file set whose files
+disagree.
+
+## Concept families and Variables
+
+Concepts are two-level. A **concept family** (`fd:GDP`, `fd:Population`) is the
+small curated vocabulary from `concepts.yaml`; a **Variable** is the qualified
+combination `(code, entity_type, measure, unit, frequency)` — the identity a
+datasource actually binds columns to.
+
+A manifest concept hint may point at its family with the optional
+`concept_family` field, which the loader validates against `concepts.yaml`:
+
+```yaml
+concepts:
+  - {column: close, concept: price.close, entity_type: stock, unit: currency,
+     frequency: daily, concept_family: PriceClose}
+```
+
+Omitting it preserves the previous behaviour — no family validation occurs, and
+the consumer derives a family from the concept code.
 
 ## Manifest Declaration Requirement
 

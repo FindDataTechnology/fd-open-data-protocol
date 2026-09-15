@@ -1,0 +1,230 @@
+# FindData vocabulary — concept families.
+#
+# The first level of the two-level concept model. A *Concept family* is the
+# small, curated semantic vocabulary (`fd:GDP`, `fd:Population`, ...); a
+# *Variable* is the qualified five-tuple identity that lives in the MCP
+# ontology store `concepts` table and carries `concept_code` pointing back here.
+#
+# URIs: https://schema.finddata.tech/concept/<id>
+#
+# `variables:` blocks are the initial seed content — the five-tuple identities
+# `consume-concepts` materializes for that family. Families without a
+# `variables:` block are declarative only (derivation links to them by code).
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: concept
+entries:
+  - id: GDP
+    label_en: Gross Domestic Product
+    label_zh: 国内生产总值
+    description: >-
+      The market value of all final goods and services produced within a
+      country's borders in a period. The qualified variants (nominal, real,
+      PPP, per-capita, growth) are distinct Variables of this family.
+    value_type: currency
+    unit_type: currency
+    dimensions: [nominal_current, real_constant, ppp, per_capita, per_capita_ppp, growth]
+    variables:
+      - {code: gdp, entity_type: country, measure: nominal_current,  unit: usd,           frequency: yearly}
+      - {code: gdp, entity_type: country, measure: real_constant,    unit: usd,           frequency: yearly}
+      - {code: gdp, entity_type: country, measure: growth,           unit: "%",           frequency: yearly}
+      - {code: gdp, entity_type: country, measure: per_capita,       unit: usd,           frequency: yearly}
+      - {code: gdp, entity_type: country, measure: per_capita_ppp,   unit: international, frequency: yearly}
+
+  - id: Population
+    label_en: Population
+    label_zh: 人口
+    description: >-
+      Total resident population of an entity at a point in time. Aligns with
+      Data Commons Count_Person and World Bank SP.POP.TOTL.
+    value_type: count
+    unit_type: count
+    dimensions: []
+    variables:
+      - {code: population.total, entity_type: country, measure: "", unit: persons, frequency: yearly}
+
+  - id: PriceClose
+    label_en: Closing Price
+    label_zh: 收盘价
+    description: >-
+      Price of the last trade in a session — the canonical closing quote for a
+      listed instrument.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: price.close, entity_type: stock, measure: "", unit: currency, frequency: daily}
+
+  - id: PriceOpen
+    label_en: Opening Price
+    label_zh: 开盘价
+    description: Price of the first trade in a session.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: price.open, entity_type: stock, measure: "", unit: currency, frequency: daily}
+
+  - id: PriceHigh
+    label_en: Session High Price
+    label_zh: 最高价
+    description: Highest traded price during a session.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: price.high, entity_type: stock, measure: "", unit: currency, frequency: daily}
+
+  - id: PriceLow
+    label_en: Session Low Price
+    label_zh: 最低价
+    description: Lowest traded price during a session.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: price.low, entity_type: stock, measure: "", unit: currency, frequency: daily}
+
+  - id: PriceVolume
+    label_en: Traded Volume
+    label_zh: 成交量
+    description: Number of units traded during a session.
+    value_type: count
+    unit_type: count
+    dimensions: []
+    variables:
+      - {code: price.volume, entity_type: stock, measure: "", unit: shares, frequency: daily}
+
+  - id: PriceAmount
+    label_en: Traded Turnover
+    label_zh: 成交额
+    description: Monetary value traded during a session.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: price.amount, entity_type: stock, measure: "", unit: currency, frequency: daily}
+
+  - id: NavUnit
+    label_en: Net Asset Value per Unit
+    label_zh: 单位净值
+    description: >-
+      Net asset value of one fund unit — the canonical daily price series for
+      funds and ETFs.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: nav.unit, entity_type: fund, measure: "", unit: currency, frequency: daily}
+
+  - id: Revenue
+    label_en: Revenue
+    label_zh: 营业收入
+    description: Operating revenue recognized in a reporting period.
+    value_type: currency
+    unit_type: currency
+    dimensions: [growth]
+    variables:
+      - {code: financials.revenue, entity_type: stock, measure: "", unit: currency, frequency: yearly}
+
+  - id: NetProfit
+    label_en: Net Profit
+    label_zh: 净利润
+    description: Profit attributable to the reporting entity after tax.
+    value_type: currency
+    unit_type: currency
+    dimensions: [growth]
+    variables:
+      - {code: financials.net_profit, entity_type: stock, measure: "", unit: currency, frequency: yearly}
+
+  - id: TotalAssets
+    label_en: Total Assets
+    label_zh: 资产总计
+    description: Carrying amount of all assets at the reporting date.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: financials.total_assets, entity_type: stock, measure: "", unit: currency, frequency: yearly}
+
+  - id: TotalLiabilities
+    label_en: Total Liabilities
+    label_zh: 负债合计
+    description: Carrying amount of all liabilities at the reporting date.
+    value_type: currency
+    unit_type: currency
+    dimensions: []
+    variables:
+      - {code: financials.total_liabilities, entity_type: stock, measure: "", unit: currency, frequency: yearly}
+
+  - id: Inflation
+    label_en: Inflation Rate
+    label_zh: 通货膨胀率
+    description: >-
+      Rate of change of a general price level, typically consumer prices.
+      Aligns with World Bank FP.CPI.TOTL.ZG.
+    value_type: ratio
+    unit_type: percent
+    dimensions: []
+    variables: []
+
+  - id: Unemployment
+    label_en: Unemployment Rate
+    label_zh: 失业率
+    description: >-
+      Share of the labour force that is without work and seeking it. Aligns
+      with World Bank SL.UEM.TOTL.ZS.
+    value_type: ratio
+    unit_type: percent
+    dimensions: []
+    variables: []
+
+  - id: LifeExpectancy
+    label_en: Life Expectancy
+    label_zh: 预期寿命
+    description: >-
+      Expected years of life at birth for a given population. Aligns with
+      World Bank SP.DYN.LE00.IN.
+    value_type: duration
+    unit_type: count
+    dimensions: []
+    variables: []
+
+  - id: CO2Emissions
+    label_en: CO2 Emissions
+    label_zh: 二氧化碳排放
+    description: >-
+      Carbon dioxide emissions from fuel combustion, total or per capita.
+      Aligns with World Bank EN.ATM.CO2E.KT and EN.ATM.CO2E.PC.
+    value_type: count
+    unit_type: count
+    dimensions: [per_capita]
+    variables: []
+
+  - id: DocTitle
+    label_en: Document Title
+    label_zh: 文档标题
+    description: Title of a published document (notice, report, filing).
+    value_type: text
+    unit_type: none
+    dimensions: []
+    variables: []
+
+  - id: DocDate
+    label_en: Document Date
+    label_zh: 文档日期
+    description: Publication or effective date of a document.
+    value_type: date
+    unit_type: none
+    dimensions: []
+    variables: []
+
+  - id: DocUrl
+    label_en: Document URL
+    label_zh: 文档链接
+    description: Canonical web address of a published document.
+    value_type: text
+    unit_type: none
+    dimensions: []
+    variables: []

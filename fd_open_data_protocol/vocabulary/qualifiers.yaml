@@ -1,0 +1,51 @@
+# FindData vocabulary — qualifiers.
+#
+# The dimensions that qualify a Variable beyond entity + measure + unit: they
+# answer "which flavour of this quantity?". A Variable's `measure` field carries
+# one of these ids. Aligns with Schema.org qualified StatisticalVariable
+# (measuredProperty vs. the qualified variable).
+#
+# URIs: https://schema.finddata.tech/qualifier/<id>
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: qualifier
+entries:
+  - id: nominal_current
+    label_en: Nominal (current prices)
+    label_zh: 名义值（现价）
+    description: >-
+      Valued at the prices of the period itself; no inflation adjustment.
+  - id: real_constant
+    label_en: Real (constant prices)
+    label_zh: 实际值（不变价）
+    description: >-
+      Deflated to a fixed base-year price level, removing the effect of
+      inflation.
+  - id: ppp
+    label_en: Purchasing Power Parity
+    label_zh: 购买力平价
+    description: >-
+      Converted using PPP rates rather than market exchange rates, so volumes
+      are comparable across countries.
+  - id: per_capita
+    label_en: Per Capita
+    label_zh: 人均
+    description: Divided by the population of the measured entity.
+  - id: per_capita_ppp
+    label_en: Per Capita (PPP)
+    label_zh: 人均（购买力平价）
+    description: >-
+      Per-capita value expressed in international dollars at PPP rates.
+  - id: growth
+    label_en: Growth Rate
+    label_zh: 增长率
+    description: >-
+      Period-over-period rate of change of the underlying quantity, expressed
+      in percent.
+  - id: total
+    label_en: Total
+    label_zh: 总计
+    description: >-
+      The aggregate over the whole entity, as opposed to a per-unit or subset
+      figure.

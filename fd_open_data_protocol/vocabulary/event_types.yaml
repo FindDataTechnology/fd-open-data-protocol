@@ -1,0 +1,17 @@
+# FindData vocabulary — event types.
+#
+# Events a datasource may observe with a timestamp rather than a period
+# (announcements, dividends, index reviews). Ids are snake_case; `pattern` is
+# an optional regex constraining future ids in this registry.
+#
+# This registry is intentionally empty in the current release — event-shaped
+# content lands with the finance/shipping content phase. The file is shipped
+# and loadable so the vocabulary family is complete and validators see a
+# well-formed (empty) registry.
+#
+# URIs: https://schema.finddata.tech/event-type/<id>
+#
+# Entries are never deleted — retirement is expressed with `superseded_by`.
+version: "2026.09"
+kind: event-type
+entries: []
