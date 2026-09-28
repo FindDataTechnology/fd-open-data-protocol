@@ -17,6 +17,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+registry = ["psycopg[binary]>=3.1"]
+
+[project.scripts]
+fd-registry = "fd_open_data_protocol.registry_cli:main"
 
 [tool.setuptools.dynamic]
 version = { attr = "fd_open_data_protocol.__version__" }

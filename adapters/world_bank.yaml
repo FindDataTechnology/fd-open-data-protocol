@@ -1,0 +1,25 @@
+# world_bank.indicator → registry（首批 2026-09-23）
+# name_cn 补齐：1,185 条世界银行官方中文译名（API /v2/zh/sources/2 + 通用表）
+# + 314 条 LLM 起草（DC./DT./IC.BRE.* 族，无官方中文）——来源清单见
+# naming-work/wb_name_cn_sources.json。
+source_db: world_bank
+source_table: indicator
+source_column: code
+native_code_column: code
+fields:
+  semantic_code:
+    from: column          # WDI codes are already AI-readable (NY.GDP.MKTP.CD)
+    value: code
+  name_en:
+    from: column
+    value: name_en
+  name_zh:
+    from: map_file
+    value: ../naming-work/wb_name_cn_full.json
+  unit:
+    from: column
+    value: unit
+  domain:
+    from: literal
+    value: macro
+provenance_columns: [topic, source, category]

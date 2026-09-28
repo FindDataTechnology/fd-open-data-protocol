@@ -1,0 +1,60 @@
+# Registry adapter template — copy me, fill me in, register.
+#
+#   cp template/registry_adapter.template.yaml my_source.yaml
+#   python -m fd_open_data_protocol.registry_cli register \
+#       --adapter my_source.yaml --registry-dsn "$FD_REGISTRY_DSN" \
+#       --source-dsn "$FD_SOURCE_DSN" --auto-verify
+#
+# One adapter per source table. New sources never touch core code.
+
+# --- anchor -------------------------------------------------------------------
+source_db: my_database          # logical source database name (anchor part 1)
+source_table: my_indicator_table  # source table holding one row per indicator
+source_column: indicator_code   # the column the native code is read from (anchor part 3)
+native_code_column: indicator_code  # same column, used to extract the code value
+
+# --- field mapping (column | literal | map_file) -------------------------------
+fields:
+  # Preferred: the source code is already AI-readable (WDI style) - keep it.
+  semantic_code:
+    from: column
+    value: indicator_code
+    uppercase: false
+  # Or draft semantic codes in bulk and look them up (LLM/curated map,
+  # JSON {"NATIVE_CODE": "semantic.code"}; misses stay unverified, not wrong):
+  # semantic_code:
+  #   from: map_file
+  #   value: semantic_codes.json
+  name_zh:
+    from: column
+    value: name_cn
+  name_en:
+    from: column
+    value: name_en
+    # from: map_file                # e.g. official translations fetched once
+    # value: name_en.json
+  unit:
+    from: column
+    value: unit
+    missing: null                  # metadata may be unknown - never blocks the gate
+  frequency:
+    from: literal
+    value: unknown                 # or a real cadence: day/month/quarter/year
+  domain:
+    from: literal
+    value: macro                   # business domain tag
+
+# --- provenance snapshot --------------------------------------------------------
+# Source-row fields worth keeping verbatim for audit (label_cn, topic, ...).
+provenance_columns:
+  - topic
+  - label_cn
+
+# --- optional -------------------------------------------------------------------
+# Custom extraction query (default: SELECT * FROM <source_table>). Keep the
+# native_code_column and every mapped column in the select list.
+# source_query: "SELECT code AS indicator_code, name_cn, name_en FROM v_indicators"
+
+# In-batch semantic_code collisions get "-2", "-3"... and needs_review=true
+# provenance instead of a silent merge.
+# semantic_code_dedupe_suffix: "-%d"

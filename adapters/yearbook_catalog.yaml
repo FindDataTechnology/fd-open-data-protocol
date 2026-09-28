@@ -1,0 +1,19 @@
+# yearbook_catalog.indicators → registry（首批 2026-09-23）
+# std_name 混杂：52,048 条中文名 + 1,877 条纯数字占位（如 "23072"）。
+# 首登记不生成 semantic_code/name_en ⇒ 全量 unverified 挂账，清单与工作量
+# 估计由覆盖审计导出（name_zh ~ '^[0-9.]+$' 为占位桶）。
+source_db: yearbook_catalog
+source_table: indicators
+source_column: id
+native_code_column: id
+fields:
+  name_zh:
+    from: column
+    value: std_name
+  unit:
+    from: column
+    value: std_unit
+  domain:
+    from: literal
+    value: macro
+provenance_columns: [category, note]

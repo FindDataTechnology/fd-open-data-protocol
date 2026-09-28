@@ -1,0 +1,4 @@
+code,name_en,name_zh,topic
+MINI.GDP,GDP (current US$),GDP（现价美元）,macro
+MINI.CPI,CPI inflation,居民消费价格指数,macro
+MINI.X,,神秘指标,other

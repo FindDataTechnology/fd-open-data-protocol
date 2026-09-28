@@ -1,0 +1,21 @@
+# 新源接入演练（task 6.2）：scratch 库 fd_registry_drill.macro_indicators
+# 走完 适配器→登记→绑定→verified 全流程；演练记录见
+# openspec/changes/unified-indicator-registry/reports/2026-09-23_new_source_drill.md
+source_db: fd_registry_drill
+source_table: macro_indicators
+source_column: mi_code
+native_code_column: mi_code
+fields:
+  semantic_code:
+    from: column
+    value: mi_code
+  name_zh:
+    from: column
+    value: mi_name_cn
+  name_en:
+    from: column
+    value: mi_name_en
+  domain:
+    from: literal
+    value: macro
+provenance_columns: [mi_topic, mi_unit]

@@ -1,0 +1,23 @@
+# gta_panel.variables → registry（首批 2026-09-23）
+# 命名策略（design 决策 2）：原生码=Stata 变量名（半可读，锚点+语义码），
+# label_cn 提升为 name_zh，name_en 由 LLM 批量起草（naming-work/gta_name_en*.json，
+# 核验记录=登记时抽样输出）。
+source_db: gta_panel
+source_table: variables
+source_column: name
+native_code_column: name
+fields:
+  semantic_code:
+    from: column        # nnindcd_51 → NNINDCD_51（半语义，经济学家可读）
+    value: name
+    uppercase: true
+  name_zh:
+    from: column
+    value: label_cn
+  name_en:
+    from: map_file
+    value: ../naming-work/gta_name_en.json
+  domain:
+    from: literal
+    value: governance
+provenance_columns: [name_src, stata_type, pg_type, table_name, dict_no, sublib_code]

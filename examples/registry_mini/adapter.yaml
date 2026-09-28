@@ -1,0 +1,19 @@
+source_db: mini_example
+source_table: mini_indicator
+source_column: code          # anchor label: the code was read from column "code"
+native_code_column: code
+fields:
+  semantic_code:
+    from: column
+    value: code              # source codes are already semantic here
+  name_en:
+    from: column
+    value: name_en
+  name_zh:
+    from: column
+    value: name_zh
+  domain:
+    from: literal
+    value: example
+provenance_columns:
+  - topic

@@ -7,13 +7,19 @@ hints, and fetch reference. Column-level ``frequency``/``datasource`` come from
 
 Entity definitions are optional - when provided, they register canonical
 entity metadata (names, attributes, relationships) in the ontology database.
+
+The unified indicator registry adds ``RegistryEntry``: one catalog row per
+indicator in any source database, identified by a native-code anchor
+(source db/table/column + native code) and gated for public visibility by a
+mandatory semantic naming layer.
 """
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from typing import Any, Iterable, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 @lru_cache(maxsize=1)
@@ -282,3 +288,116 @@ class DatasourceManifest(BaseModel):
     entity_definitions: list[Entity] = Field(default_factory=list)
     relationships: list[RelationshipSpec] = Field(default_factory=list)
     fetch: Optional[FetchRef] = None
+
+
+# ---------------------------------------------------------------------------
+# Unified indicator registry
+#
+# The registry is the cross-database indicator catalog: every indicator row of
+# every source database gets one ``RegistryEntry``. Identity is the native-code
+# anchor (source_db/source_table/source_column + native_code, never rewritten);
+# everything an AI consumer actually reads (semantic_code, bilingual names)
+# lives on top of that anchor and gates public visibility.
+
+#: semantic_code must be AI-readable: start with a letter, then letters,
+#: digits, dots, underscores or hyphens (``price.open``, ``NY.GDP.MKTP.CD``).
+SEMANTIC_CODE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9._-]{0,127}$")
+
+#: the naming elements an entry MUST carry before it can be verified and
+#: served on any public catalog surface (fd-open-data-mcp tools, /indicators).
+NAMING_GATE_FIELDS = ("semantic_code", "name_zh", "name_en")
+
+#: metadata fields that do NOT gate verification; unknown is recorded as None
+#: and reported as such rather than blocking the entry.
+REGISTRY_METADATA_FIELDS = ("unit", "frequency", "domain")
+
+
+def _clean_optional_text(v: Optional[str]) -> Optional[str]:
+    """Trim optional naming/metadata text; empty becomes None (absent)."""
+    if v is None:
+        return None
+    v = v.strip()
+    return v or None
+
+
+class RegistryEntry(BaseModel):
+    """One indicator in the unified registry.
+
+    Anchor fields (``source_db``, ``source_table``, ``source_column``,
+    ``native_code``) are the idempotent upsert key. ``source_column`` is the
+    source column the native code was read from (``""`` when the code is a
+    row-level key of the table itself); it is part of identity, not a pointer
+    to the data.
+
+    An entry is ``verified`` only when the whole naming gate passes
+    (``semantic_code`` + both names present) AND a verification record exists
+    (``verified_by``, e.g. ``rule:naming-gate`` or a human reviewer id).
+    Unverified entries stay in the registry for audit but MUST NOT surface on
+    public catalog faces.
+    """
+
+    source_db: str
+    source_table: str
+    source_column: str = ""
+    native_code: str
+    semantic_code: Optional[str] = None
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+    unit: Optional[str] = None
+    frequency: Optional[str] = None
+    domain: Optional[str] = None
+    provenance: Optional[dict[str, Any]] = None  # source-row snapshot (label_cn, topic, ...)
+    verified: bool = False
+    verified_at: Optional[str] = None  # ISO-8601; set by the store on verify
+    verified_by: Optional[str] = None  # who/what verified: "rule:naming-gate", reviewer id, ...
+
+    @field_validator("source_db", "source_table", "native_code")
+    @classmethod
+    def _anchor_not_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("anchor fields must be non-blank")
+        return v.strip()
+
+    @field_validator("source_column", mode="before")
+    @classmethod
+    def _source_column_blank_ok(cls, v) -> str:
+        return (v or "").strip() if isinstance(v, str) else ""
+
+    @field_validator("semantic_code")
+    @classmethod
+    def _semantic_code_shape(cls, v: Optional[str]) -> Optional[str]:
+        v = _clean_optional_text(v)
+        if v is not None and not SEMANTIC_CODE_RE.match(v):
+            raise ValueError(
+                f"semantic_code {v!r} must match {SEMANTIC_CODE_RE.pattern} "
+                "(start with a letter; letters/digits/dot/underscore/hyphen only)"
+            )
+        return v
+
+    @field_validator("name_zh", "name_en", "unit", "frequency", "domain")
+    @classmethod
+    def _text_trimmed(cls, v: Optional[str]) -> Optional[str]:
+        return _clean_optional_text(v)
+
+    @model_validator(mode="after")
+    def _verified_implies_gate(self) -> "RegistryEntry":
+        if self.verified and not naming_gate_passed(self):
+            missing = [f for f in NAMING_GATE_FIELDS if not getattr(self, f)]
+            raise ValueError(
+                f"verified entry must pass the naming gate; missing: {', '.join(missing)}"
+            )
+        return self
+
+    def anchor(self) -> tuple[str, str, str, str]:
+        """The idempotent identity key of this entry."""
+        return (self.source_db, self.source_table, self.source_column, self.native_code)
+
+
+def naming_gate_passed(entry: RegistryEntry) -> bool:
+    """True when every mandatory naming element is present.
+
+    This is the rule half of the quality gate: entries failing it are stored
+    as unverified (auditable) and MUST NOT appear on any public catalog face.
+    The verification record (``verified_by``) is the second half.
+    """
+    return all(getattr(entry, field) for field in NAMING_GATE_FIELDS)

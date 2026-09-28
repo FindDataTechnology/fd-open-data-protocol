@@ -1,0 +1,35 @@
+# fd_open_data.concepts（镜像字典）→ registry（首批 2026-09-23）
+# 只登记活跃概念（deprecated=f，452 条）；native_code=code 与既有字典对齐。
+# 命名门照走：452 条中双语齐备的过门 verified，缺名的挂账（原生概念字典
+# 本身不受影响，公网目录=原生概念 ∪ verified 注册条目）。
+source_db: fd_open_data
+source_table: concepts
+source_column: code
+native_code_column: reg_code
+source_query: >-
+  SELECT code, name_en, name_zh, category, unit, frequency, measure,
+         entity_type, source,
+         CASE WHEN count(*) OVER (PARTITION BY code) > 1
+              THEN code || '.' || entity_type
+              ELSE code END AS reg_code
+  FROM concepts WHERE NOT deprecated
+fields:
+  semantic_code:
+    from: column        # price.open / ETF_DISCOUNT — 字典码即语义码
+    value: reg_code
+  name_en:
+    from: column
+    value: name_en
+  name_zh:
+    from: column
+    value: name_zh
+  unit:
+    from: column
+    value: unit
+  frequency:
+    from: column
+    value: frequency
+  domain:
+    from: column
+    value: category
+provenance_columns: [measure, entity_type, source, code]

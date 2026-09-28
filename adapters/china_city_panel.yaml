@@ -1,0 +1,24 @@
+# china_city_panel.variable_catalog → registry（首批 2026-09-23）
+# var_id（v176 类）完全不可读 ⇒ semantic_code/name_en 由 LLM 从 name_cn 起草
+#（naming-work/city_semantic_codes.json + city_name_en.json，city.* 前缀）。
+source_db: china_city_panel
+source_table: variable_catalog
+source_column: var_id
+native_code_column: var_id
+fields:
+  semantic_code:
+    from: map_file
+    value: ../naming-work/city_semantic_codes.json
+  name_zh:
+    from: column
+    value: name_cn
+  name_en:
+    from: map_file
+    value: ../naming-work/city_name_en.json
+  unit:
+    from: column
+    value: unit
+  domain:
+    from: literal
+    value: city
+provenance_columns: [classification, note, col_no]
