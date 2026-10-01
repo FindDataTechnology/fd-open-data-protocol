@@ -1,5 +1,7 @@
 # fd-open-data-protocol
 
+> **柏讯 Wire 产品线** · [寻数 FindData](https://www.finddatatech.cloud/products/wire) 的开放数据供给线 — 数据源清单协议
+
 [English](README.md) | **中文**
 
 **开放数据源协议 (open-data datasource protocol)**：数据源对外暴露的清单契约

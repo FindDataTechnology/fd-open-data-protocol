@@ -1,5 +1,7 @@
 # fd-open-data-protocol
 
+> **Wire (柏讯) product line** · the open-data supply line of [FindData](https://www.finddatatech.cloud/products/wire) — the datasource manifest contract
+
 **English** | [中文](README.zh-CN.md)
 
 The **open-data datasource protocol**: a manifest contract a datasource exposes
