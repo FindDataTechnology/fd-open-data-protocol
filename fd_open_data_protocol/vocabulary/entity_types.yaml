@@ -97,3 +97,38 @@ entries:
     description: >-
       Human entities — fund managers, officers (logical-only; no taxonomy
       table). Aligns with schema.org Person and the Wikidata QID.
+  - id: paper
+    label_en: Paper
+    label_zh: 论文
+    description: >-
+      Scholarly works — journal articles, conference papers, preprints.
+      Keyed by DOI (10.1038/nature14539) or OpenAlex work id (W2919115771).
+      Aligns with schema.org ScholarlyArticle.
+  - id: author
+    label_en: Author
+    label_zh: 作者
+    description: >-
+      Persons credited as authors of scholarly works. Keyed by OpenAlex
+      author id; distinct from `person` (which carries no scholarly role).
+      Aligns with schema.org Person.
+  - id: institution
+    label_en: Institution
+    label_zh: 机构
+    description: >-
+      Research and academic institutions (universities, research institutes,
+      hospitals) as affiliation targets. Keyed by OpenAlex institution id;
+      aligns with schema.org EducationalOrganization. `organization` covers
+      generic bodies; this type is scoped to scholarly affiliation.
+  - id: venue
+    label_en: Venue
+    label_zh: 发表载体
+    description: >-
+      Publication venues — journals, conference proceedings, repositories.
+      Keyed by ISSN or OpenAlex source id. Aligns with schema.org
+      Periodical; distinct from `organization` (a venue is not a body).
+  - id: topic
+    label_en: Topic
+    label_zh: 主题
+    description: >-
+      Scholarly topics / fields of study (OpenAlex topics, concepts).
+      Keyed by OpenAlex topic id; describes what a work is about.

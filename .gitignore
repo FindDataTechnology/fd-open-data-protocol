@@ -20,3 +20,7 @@ build/
 .DS_Store
 .idea/
 .vscode/
+
+# 命名对齐工作的中间产物（LLM 多版本名称表、csv/tsv 中转，约 856K）。
+# 未被任何代码引用：权威产物是生成后落到协议目录的正式文件。
+naming-work/

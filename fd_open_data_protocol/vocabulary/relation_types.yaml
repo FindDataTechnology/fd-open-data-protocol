@@ -71,3 +71,48 @@ entries:
       The instrument was issued by the entity (stock/bond/fund -> company).
     source_types: [stock, bond, fund]
     target_types: [company, organization]
+  - id: cites
+    label_en: Cites
+    label_zh: 引用
+    description: >-
+      The source work cites the target work in its bibliography
+      (paper -> paper). Directional: source references target.
+    source_types: [paper]
+    target_types: [paper]
+  - id: cited_by
+    label_en: Cited By
+    label_zh: 被引
+    description: >-
+      Inverse of `cites` — the source work is cited by the target work
+      (paper -> paper). Retained explicitly because external scholarly
+      APIs expose both directions as distinct queries.
+    source_types: [paper]
+    target_types: [paper]
+  - id: authored_by
+    label_en: Authored By
+    label_zh: 作者为
+    description: >-
+      The work was authored by the person (paper -> author).
+    source_types: [paper]
+    target_types: [author]
+  - id: affiliated_with
+    label_en: Affiliated With
+    label_zh: 隶属于
+    description: >-
+      The author is affiliated with the institution (author -> institution).
+    source_types: [author]
+    target_types: [institution]
+  - id: published_in
+    label_en: Published In
+    label_zh: 发表于
+    description: >-
+      The work was published in the venue (paper -> venue).
+    source_types: [paper]
+    target_types: [venue]
+  - id: has_topic
+    label_en: Has Topic
+    label_zh: 主题为
+    description: >-
+      The work is classified under the topic (paper -> topic).
+    source_types: [paper]
+    target_types: [topic]

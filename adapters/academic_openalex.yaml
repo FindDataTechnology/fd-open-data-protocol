@@ -1,0 +1,116 @@
+# OpenAlex 学术图谱数据源（CC0，免费，无需 key）
+# 用途：为 papers 垂域提供**跨文献引用网络**（正向引用 / 反向引用），
+#       作为既有全文/元数据检索的**增益**，不替代既有检索。
+# 纪律：
+#   - 礼貌调用：请求须带含 mail 的 User-Agent（免费档 1000 credits/次级）
+#   - 失败显式：上游不可用/超配额须报错，禁止返回空结果冒充「无数据」
+#   - 收录偏差：OpenAlex 未收录应标注为「未收录」，不断言「不存在引用」
+version: "1"
+name: academic-openalex
+label: OpenAlex Academic Graph
+source_url: https://api.openalex.org
+scanner_mode: upstream-curated
+ranking_seed: [0.9, 0.85]          # 权威性与可访问性：CC0 免费、引用图双向齐备
+requires: []                        # 仅依赖 urllib/httpx，无需额外 pip extra
+functions:
+  - command: get_work
+    category: academic-work
+    description: 按 DOI 精确取作品，返回标识与结构化元数据
+    frequency: on-demand
+    verified: true
+    parameters:
+      - {name: doi, type: str, required: true, description: 作品 DOI，如 10.1038/nature14539}
+    columns:
+      - {name: work_id,      type: str, description: OpenAlex 作品标识（如 W2919115771）}
+      - {name: title,        type: str, description: 作品标题}
+      - {name: year,         type: int, description: 发表年}
+      - {name: venue,        type: str, description: 来源/期刊}
+      - {name: cited_by_count, type: int, description: 被引次数}
+      - {name: doi,          type: str, description: DOI}
+    real_sources:
+      - name: openalex
+        priority: 0
+
+  - command: search_works
+    category: academic-work
+    description: 按标题或关键词检索作品，返回命中列表
+    frequency: on-demand
+    verified: true
+    parameters:
+      - {name: query, type: str, required: true, description: 标题或关键词}
+      - {name: limit, type: int, required: false, description: 返回条数上限}
+    columns:
+      - {name: work_id,        type: str, description: 作品标识}
+      - {name: title,          type: str, description: 标题}
+      - {name: year,           type: int, description: 发表年}
+      - {name: cited_by_count, type: int, description: 被引次数}
+    real_sources:
+      - name: openalex
+        priority: 0
+
+  - command: get_references
+    category: academic-citation
+    description: 正向引用图——某作品引用了哪些作品
+    frequency: on-demand
+    verified: true
+    parameters:
+      - {name: work_id, type: str, required: false, description: OpenAlex 作品标识}
+      - {name: doi,     type: str, required: false, description: 或按 DOI 定位作品}
+    columns:
+      - {name: work_id,         type: str, description: 本作品标识}
+      - {name: reference_count, type: int, description: 被引文献总数}
+      - {name: reference_ids,   type: str, description: 被引作品标识列表（逗号分隔）}
+    real_sources:
+      - name: openalex
+        priority: 0
+
+  - command: get_citations
+    category: academic-citation
+    description: 反向引用图——哪些作品引用了该作品（filter=cites）
+    frequency: on-demand
+    verified: true
+    parameters:
+      - {name: work_id, type: str, required: false, description: OpenAlex 作品标识}
+      - {name: doi,     type: str, required: false, description: 或按 DOI 定位作品}
+      - {name: limit,   type: int, required: false, description: 返回条数上限}
+    columns:
+      - {name: citing_work_id, type: str, description: 施引作品标识}
+      - {name: title,          type: str, description: 施引作品标题}
+      - {name: year,           type: int, description: 施引作品发表年}
+      - {name: total_count,    type: int, description: 施引总数（数据源给出）}
+    real_sources:
+      - name: openalex
+        priority: 0
+
+concepts:
+  - {column: cited_by_count, concept: citation.cited_by, entity_type: paper, unit: count}
+  - {column: reference_count, concept: citation.references, entity_type: paper, unit: count}
+
+entities:
+  - entity_type: paper
+    coverage: universe
+  - entity_type: author
+    coverage: universe
+  - entity_type: institution
+    coverage: universe
+  - entity_type: venue
+    coverage: universe
+  - entity_type: topic
+    coverage: universe
+
+relationships:
+  - relation_type: cites
+    source_entity_type: paper
+    target_entity_type: paper
+  - relation_type: cited_by
+    source_entity_type: paper
+    target_entity_type: paper
+  - relation_type: authored_by
+    source_entity_type: paper
+    target_entity_type: author
+  - relation_type: affiliated_with
+    source_entity_type: author
+    target_entity_type: institution
+  - relation_type: published_in
+    source_entity_type: paper
+    target_entity_type: venue
