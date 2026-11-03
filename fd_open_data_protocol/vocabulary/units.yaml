@@ -92,3 +92,10 @@ entries:
     label_zh: 年
     description: A duration measured in calendar years.
     un_cefact_code: ANN
+
+  - id: count
+    label_en: Count
+    label_zh: 计数
+    description: >-
+      Dimensionless tally of discrete events or items (notifications, port
+      calls). Used where the value is a number of things, not a measurement.

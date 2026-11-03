@@ -262,3 +262,30 @@ entries:
     dimensions: [reference]
     variables:
       - {code: fx.rate, entity_type: currency_pair, measure: reference, unit: cny, frequency: monthly}
+
+  - id: PolicyNotice
+    label_en: Policy notice count
+    label_zh: 政策通报数
+    description: >-
+      WTO TBT/SPS notifications raised per notifying member per month
+      (WTO ePing feed, deduplicated by member+title+date). For
+      cross-border exporters the heat answers "which markets are
+      raising barriers this month".
+    value_type: number
+    unit_type: count
+    dimensions: [tbt_sps]
+    variables:
+      - {code: policy.notice_count, entity_type: country, measure: tbt_sps, unit: count, frequency: monthly}
+
+  - id: PortCalls
+    label_en: Port calls
+    label_zh: 港口停靠数
+    description: >-
+      Daily number of vessel calls at a port (IMF PortWatch). Keyed by
+      the portwatch port id; the cross-border port batch registers the
+      Chinese hub ports only (never offshore-terminal feeds).
+    value_type: number
+    unit_type: count
+    dimensions: [daily_calls]
+    variables:
+      - {code: port.calls, entity_type: port, measure: daily_calls, unit: count, frequency: daily}
