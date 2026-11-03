@@ -235,18 +235,20 @@ entries:
     description: >-
       Annual trade flow value (FOB, USD) for a China export commodity at
       HS6 level, split by partner economy. The partner axis is expressed
-      as measure dimensions (export_world, export_us, export_de,
-      export_jp, export_uk); the import side joins when an import batch
-      lands. Source: UN Comtrade annual HS flows.
+      encoded in the concept code (trade.export_flow.world/us/de/jp/uk,
+      one series per code per the dashboard plane contract); the import
+      side joins when an import batch lands. Source: UN Comtrade annual HS flows.
     value_type: currency
     unit_type: currency
-    dimensions: [export_world, export_us, export_de, export_jp, export_uk]
+    dimensions: [world, us, de, jp, uk]
     variables:
-      - {code: trade.flow_value, entity_type: hs_code, measure: export_world, unit: usd, frequency: yearly}
-      - {code: trade.flow_value, entity_type: hs_code, measure: export_us,    unit: usd, frequency: yearly}
-      - {code: trade.flow_value, entity_type: hs_code, measure: export_de,    unit: usd, frequency: yearly}
-      - {code: trade.flow_value, entity_type: hs_code, measure: export_jp,    unit: usd, frequency: yearly}
-      - {code: trade.flow_value, entity_type: hs_code, measure: export_uk,    unit: usd, frequency: yearly}
+      # 看板取数契约（data_plane.series 只按 code+source+entity 过滤）：
+      # 伙伴国轴编进 concept code，measure 统一 export——一序列一码。
+      - {code: trade.export_flow.world, entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
+      - {code: trade.export_flow.us,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
+      - {code: trade.export_flow.de,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
+      - {code: trade.export_flow.jp,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
+      - {code: trade.export_flow.uk,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
 
   - id: FxRate
     label_en: FX reference rate
