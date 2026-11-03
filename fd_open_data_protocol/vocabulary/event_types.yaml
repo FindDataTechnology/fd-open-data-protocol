@@ -12,6 +12,6 @@
 # URIs: https://schema.finddata.tech/event-type/<id>
 #
 # Entries are never deleted — retirement is expressed with `superseded_by`.
-version: "2026.09"
+version: "2026.11"
 kind: event-type
 entries: []

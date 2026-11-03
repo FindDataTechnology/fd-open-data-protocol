@@ -8,7 +8,7 @@
 # URIs: https://schema.finddata.tech/unit/<id>
 #
 # Entries are never deleted — retirement is expressed with `superseded_by`.
-version: "2026.09"
+version: "2026.11"
 kind: unit
 entries:
   # --- Monetary ---------------------------------------------------------------

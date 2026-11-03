@@ -7,7 +7,7 @@
 # URIs: https://schema.finddata.tech/entity-type/<id>
 #
 # Entries are never deleted — retirement is expressed with `superseded_by`.
-version: "2026.09"
+version: "2026.11"
 kind: entity-type
 entries:
   - id: country
@@ -132,3 +132,45 @@ entries:
     description: >-
       Scholarly topics / fields of study (OpenAlex topics, concepts).
       Keyed by OpenAlex topic id; describes what a work is about.
+  - id: customs_regime
+    label_en: Customs regime code
+    label_zh: 海关监管代码
+    description: >-
+      China customs supervision regime codes for cross-border e-commerce
+      (9610 retail export, 1210 bonded, 9710 B2B direct export, 9810
+      overseas-warehouse export). Keyed by the 4-digit regime code.
+  - id: platform
+    label_en: E-commerce platform
+    label_zh: 电商平台
+    description: >-
+      Cross-border e-commerce marketplace platforms (amazon, tiktok_shop,
+      temu, shein). Keyed by FindData shorthand; marketplace/store detail
+      lives in metadata. Merchant-authorized data is keyed here.
+  - id: hs_code
+    label_en: HS commodity code
+    label_zh: HS 商品编码
+    description: >-
+      Harmonized System commodity classifications keyed by 2/4/6-digit HS
+      code (854142). WCO nomenclature; China tariff lines extend to 8-10
+      digits on top of the HS6 base.
+  - id: currency_pair
+    label_en: Currency pair
+    label_zh: 货币对
+    description: >-
+      FX pairs keyed by base+quote ISO codes concatenated (EURCNY). Rate
+      concepts carry reference/middle rates per source; value unit is the
+      quote currency.
+  - id: port
+    label_en: Port
+    label_zh: 口岸
+    description: >-
+      Customs ports and logistics gateways keyed by UN/LOCODE or customs
+      port code. Reserved for the cross-border port batch (authoritative
+      port-code list pending; do not seed from offshore-terminal feeds).
+  - id: policy
+    label_en: Policy entry
+    label_zh: 政策条目
+    description: >-
+      Individual policy/instrument entries (customs announcements, tax
+      notices) keyed by issuing-body document id. Registered incrementally
+      as policy patrol output lands.

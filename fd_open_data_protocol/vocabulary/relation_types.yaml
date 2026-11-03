@@ -9,7 +9,7 @@
 # URIs: https://schema.finddata.tech/relation-type/<id>
 #
 # Entries are never deleted — retirement is expressed with `superseded_by`.
-version: "2026.09"
+version: "2026.11"
 kind: relation-type
 entries:
   - id: belongs_to

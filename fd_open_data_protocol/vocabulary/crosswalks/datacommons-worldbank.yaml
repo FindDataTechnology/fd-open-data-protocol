@@ -10,7 +10,7 @@
 #
 # URIs for the mapped Variables themselves are Phase 4; this release carries
 # only family URIs.
-version: "2026.09"
+version: "2026.11"
 kind: crosswalk
 mappings:
   # --- Population -------------------------------------------------------------

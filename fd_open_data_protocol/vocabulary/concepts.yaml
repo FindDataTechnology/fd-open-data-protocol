@@ -12,7 +12,7 @@
 # `variables:` block are declarative only (derivation links to them by code).
 #
 # Entries are never deleted — retirement is expressed with `superseded_by`.
-version: "2026.09"
+version: "2026.11"
 kind: concept
 entries:
   - id: GDP
@@ -228,3 +228,35 @@ entries:
     unit_type: none
     dimensions: []
     variables: []
+
+  - id: TradeFlow
+    label_en: Trade flow value
+    label_zh: 贸易流值
+    description: >-
+      Annual trade flow value (FOB, USD) for a China export commodity at
+      HS6 level, split by partner economy. The partner axis is expressed
+      as measure dimensions (export_world, export_us, export_de,
+      export_jp, export_uk); the import side joins when an import batch
+      lands. Source: UN Comtrade annual HS flows.
+    value_type: currency
+    unit_type: currency
+    dimensions: [export_world, export_us, export_de, export_jp, export_uk]
+    variables:
+      - {code: trade.flow_value, entity_type: hs_code, measure: export_world, unit: usd, frequency: yearly}
+      - {code: trade.flow_value, entity_type: hs_code, measure: export_us,    unit: usd, frequency: yearly}
+      - {code: trade.flow_value, entity_type: hs_code, measure: export_de,    unit: usd, frequency: yearly}
+      - {code: trade.flow_value, entity_type: hs_code, measure: export_jp,    unit: usd, frequency: yearly}
+      - {code: trade.flow_value, entity_type: hs_code, measure: export_uk,    unit: usd, frequency: yearly}
+
+  - id: FxRate
+    label_en: FX reference rate
+    label_zh: 汇率参考价
+    description: >-
+      Reference/middle exchange rate for a currency pair, quoted in the
+      quote currency per one unit of base (EURCNY = CNY per 1 EUR).
+      Sources: ECB EXR monthly reference; PBOC middle rate when it lands.
+    value_type: number
+    unit_type: currency
+    dimensions: [reference]
+    variables:
+      - {code: fx.rate, entity_type: currency_pair, measure: reference, unit: cny, frequency: monthly}
