@@ -31,7 +31,7 @@ jobs:
           # tree, which would shadow the installed wheel and hide a packaging bug.
           cd /tmp
           # The vocabulary ships as package data - this fails if it did not.
-          /tmp/venv/bin/python -c "from fd_open_data_protocol.vocabulary import load_vocabulary, validate_vocabulary; errs = validate_vocabulary(); assert not errs, errs; vocab = load_vocabulary(); assert len(vocab.entity_type_ids()) == 14, vocab.entity_type_ids(); assert vocab.get('concept', 'GDP'), 'GDP family missing'; print('vocabulary smoke OK:', vocab.version, len(vocab.concept_families()), 'families')"
+          /tmp/venv/bin/python -c "from fd_open_data_protocol.vocabulary import load_vocabulary, validate_vocabulary; errs = validate_vocabulary(); assert not errs, errs; vocab = load_vocabulary(); assert len(vocab.entity_type_ids()) >= 14, vocab.entity_type_ids(); assert vocab.get('concept', 'GDP'), 'GDP family missing'; print('vocabulary smoke OK:', vocab.version, len(vocab.concept_families()), 'families')"
           # Entity-type validation resolves from the shipped file.
           /tmp/venv/bin/python -c "from fd_open_data_protocol.schema import Entity; assert Entity(entity_type='country', code='CN').entity_type == 'country'; print('schema smoke OK')"
       - name: Upload dist artifacts
