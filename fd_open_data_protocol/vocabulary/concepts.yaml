@@ -350,9 +350,13 @@ entries:
     unit_type: count
     dimensions: [new_study, planned_enrollment]
     variables:
-      - {code: trial.new,               entity_type: trial, measure: count_new,         unit: count,   frequency: month}
+      - {code: trial.new,               entity_type: country, measure: count_new,         unit: count,   frequency: month}
       - {code: trial.enrollment.planned, entity_type: trial, measure: planned_enrollment, unit: persons, frequency: month}
 
+  # 聚合度量的实体粒度：count_new / catalog_entries / class_a_share 都是「范围内该期
+  # 总量」，实体 = 范围（country=CN）。挂到样本实体（trial/drug）上会让同一概念在每个
+  # 样本上各有一条同名值，读侧无法区分总量与个体值（add-pharma-observation-extraction D1）。
+  # 逐实体的度量（planned_enrollment）仍用该实体自身（trial=注册号）。
   - id: InsuranceCatalogEntry
     label_en: Insurance drug catalog entry
     label_zh: 医保目录条目
@@ -370,8 +374,8 @@ entries:
     unit_type: count
     dimensions: [entry_count, class_a_share]
     variables:
-      - {code: catalog.drug.entries,    entity_type: drug, measure: catalog_entries, unit: count,   frequency: annual}
-      - {code: catalog.drug.class_a_share, entity_type: drug, measure: class_a_share, unit: percent, frequency: annual}
+      - {code: catalog.drug.entries,    entity_type: country, measure: catalog_entries, unit: count,   frequency: annual}
+      - {code: catalog.drug.class_a_share, entity_type: country, measure: class_a_share, unit: percent, frequency: annual}
 
   # 以下三族为**声明式**（无 variables: 种子）——对应源当前不可达，播种会造出
   # 没有任何源能填的 concepts 行（"声明≠挂载"）。载具一旦落地，再补 variables 种子。
