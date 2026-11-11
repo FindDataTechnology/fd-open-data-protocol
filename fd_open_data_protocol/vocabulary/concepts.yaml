@@ -348,10 +348,14 @@ entries:
       NOT pin an equality assertion on a past month (see the unit's golden).
     value_type: count
     unit_type: count
-    dimensions: [new_study, planned_enrollment]
+    dimensions: [new_study, planned_enrollment, phase_mix]
     variables:
       - {code: trial.new,               entity_type: country, measure: count_new,         unit: count,   frequency: monthly}
       - {code: trial.enrollment.planned, entity_type: trial, measure: planned_enrollment, unit: persons, frequency: monthly}
+      # 阶段构成（expand-pharma-structure-concepts）：实体=阶段，一条概念就能画出分布，
+      # 不必为每个阶段各开一条。取值忠实保留上游的复合形态（PHASE1,PHASE2 → PHASE1_PHASE2），
+      # 空值与 NA 分列（UNSPECIFIED / NOT_APPLICABLE）；同月各阶段之和必须等于 trial.new。
+      - {code: trial.new.by_phase,       entity_type: trial_phase, measure: count_new,     unit: count,   frequency: monthly}
 
   # 聚合度量的实体粒度：count_new / catalog_entries / class_a_share 都是「范围内该期
   # 总量」，实体 = 范围（country=CN）。挂到样本实体（trial/drug）上会让同一概念在每个
@@ -372,10 +376,14 @@ entries:
       fails if any field matches an amount pattern.
     value_type: count
     unit_type: count
-    dimensions: [entry_count, class_a_share]
+    dimensions: [entry_count, class_a_share, section_mix]
     variables:
       - {code: catalog.drug.entries,    entity_type: country, measure: catalog_entries, unit: count,   frequency: yearly}
       - {code: catalog.drug.class_a_share, entity_type: country, measure: class_a_share, unit: percent, frequency: yearly}
+      # 分部构成（expand-pharma-structure-concepts）：实体=分部（western/patent_cn/
+      # negotiated/herbal_slice，中文只在 name_zh）。各分部可支付条目之和必须等于
+      # catalog.drug.entries —— 这是分类正确性的唯一算术判据。
+      - {code: catalog.drug.entries.by_section, entity_type: catalog_section, measure: catalog_entries, unit: count, frequency: yearly}
 
   # 以下三族为**声明式**（无 variables: 种子）——对应源当前不可达，播种会造出
   # 没有任何源能填的 concepts 行（"声明≠挂载"）。载具一旦落地，再补 variables 种子。
