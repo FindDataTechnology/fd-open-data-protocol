@@ -174,3 +174,48 @@ entries:
       Individual policy/instrument entries (customs announcements, tax
       notices) keyed by issuing-body document id. Registered incrementally
       as policy patrol output lands.
+  - id: drug
+    label_en: Drug
+    label_zh: 药品
+    description: >-
+      Pharmaceutical products as licensed for use — keyed by the generic name
+      plus dosage form (通用名+剂型, e.g. 复方硼砂/外用液体剂). Distinct from
+      `company` (the licence holder) and from `industry` (a classification
+      node): a drug is an individual regulated product. Aligns with Wikidata
+      drug QIDs; the approval number that authorises it lives on `approval`.
+  - id: approval
+    label_en: Marketing approval
+    label_zh: 药品批件
+    description: >-
+      Regulatory authorisations for a drug — keyed by the approval number
+      (国药准字 H20123456) or, before approval, the acceptance number
+      (CXHS2400001). A licence is granted, varied and withdrawn over time, so
+      the same drug carries many approvals; status changes are appended as new
+      facts rather than overwriting (fact-ledger R1). Not `organization`: the
+      holder is an organization, the licence is not.
+  - id: trial
+    label_en: Clinical trial
+    label_zh: 临床试验
+    description: >-
+      Registered clinical studies — keyed by registry number (NCT06169930,
+      ChiCTR2400081234, CTR20240001). Carries phase, status and enrolment as
+      attributes; status transitions are appended as separate facts. Registry
+      number namespaces differ per registry, so the registry id is part of the
+      key, never assumed.
+  - id: hospital
+    label_en: Medical institution
+    label_zh: 医疗机构
+    description: >-
+      Licensed healthcare facilities — keyed by the official institution code
+      (医疗机构执业许可证登记号) with name, grade (三级甲等) and region as
+      attributes. Not `institution` (that value is scoped to scholarly
+      affiliation and keyed by OpenAlex id) and not `organization` (which would
+      group hospitals with agencies and associations in every group-by).
+  - id: indication
+    label_en: Indication
+    label_zh: 适应症
+    description: >-
+      The therapeutic use a regulatory document restricts a drug to — the
+      parsed target of a 限定支付范围 clause (限伴有出血的胃、十二指肠溃疡).
+      Keyed by a normalised indication string; kept distinct from `drug` so a
+      restriction can be compared across drugs and catalog editions.

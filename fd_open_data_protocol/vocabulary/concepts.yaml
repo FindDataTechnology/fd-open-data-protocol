@@ -249,6 +249,9 @@ entries:
       - {code: trade.export_flow.de,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
       - {code: trade.export_flow.jp,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
       - {code: trade.export_flow.uk,    entity_type: hs_code, measure: export, unit: usd, frequency: yearly}
+      # 进口侧（add-flower-vertical 3.2）：与出口同形，一字之差在 measure。
+      # 花卉三档（060311/060319/060120）先落 world 轴；伙伴国明细不展开。
+      - {code: trade.import_flow.world, entity_type: hs_code, measure: import, unit: usd, frequency: yearly}
 
   - id: FxRate
     label_en: FX reference rate
@@ -289,3 +292,123 @@ entries:
     dimensions: [daily_calls]
     variables:
       - {code: port.calls, entity_type: port, measure: daily_calls, unit: count, frequency: daily}
+
+  - id: PlantedArea
+    label_en: Planted area
+    label_zh: 种植面积
+    description: >-
+      Area under cultivation for an agricultural or horticultural product, in
+      hectares, as a per-country cross-section per product. Source: AIPH
+      international statistical yearbook (area chapter). Each row carries its
+      own reference year (2005-2024 mixed within one workbook), so the family is
+      a cross-section axis, never a time series: downstream MUST surface
+      ``ref_year`` and MUST NOT compute growth across differing ref_years.
+      Total = open (in-soil) + protected (greenhouse/tunnel) where both are
+      disclosed; a missing component stays NULL, never 0. The product axis is
+      encoded in the concept code (one series per code) and the country lands
+      on the entity, so two products of the same country never collide.
+    value_type: number
+    unit_type: hectare
+    dimensions: [rose, carnation, orchid, chrysanthemum, lily, christmas_tree,
+                 cut_foliage, flowering_plant, green_foliage_plant]
+    variables:
+      # 品类编进 concept code、国家落在 entity（同 price.food.fao.<commodity> 先例）。
+      # 若把品类放在 entity 侧，同一国家的玫瑰与康乃馨会撞上 uq_sem_obs
+      # (concept, entity, date, granularity) 主键而互相覆盖——这是本族的最小不变量。
+      - {code: area.flower.rose.planted,               entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.carnation.planted,          entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.orchid.planted,             entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.chrysanthemum.planted,      entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.lily.planted,               entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.christmas_tree.planted,     entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.cut_foliage.planted,        entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.flowering_plant.planted,    entity_type: country, measure: area, unit: hectare, frequency: annual}
+      - {code: area.flower.green_foliage_plant.planted, entity_type: country, measure: area, unit: hectare, frequency: annual}
+      # 欧盟花卉面积（add-flower-vertical 3.3）：Eurostat apro_cpsh1 的 N0000
+      # 「Flowers and ornamental plants (excluding nurseries)」只有 MAR_THS_HA
+      # （主面积·千公顷）一种口径有值（产量/单产口径查询均 0 值），入库时 ×1000
+      # 折成公顷，与 AIPH 的面积序列同单位可直接比对（仍分源，不混图）。
+      - {code: area.flower.all.planted,                 entity_type: country, measure: area, unit: hectare, frequency: annual}
+
+  - id: ClinicalTrial
+    label_en: Clinical trial activity
+    label_zh: 临床试验活动
+    description: >-
+      Registration activity of clinical studies, sliced by study start month.
+      Sourced from ClinicalTrials.gov API v2 filtered to
+      ``AREA[LocationCountry]China`` (spiders/clinicaltrials-cn). Only studies
+      whose start date falls in the month are counted, so the series answers
+      "how many studies started", not "how many were registered" — the latter
+      would need StudyFirstPostDate and is deliberately not mixed in.
+      Status transitions (recruiting -> completed) are state facts appended per
+      fact-ledger, NOT variables of this family: a status is categorical and
+      has no unit to aggregate.
+      Upstream back-fills studies with past start dates, so historical month
+      counts grow slowly; consumers MUST treat the series as revisable and MUST
+      NOT pin an equality assertion on a past month (see the unit's golden).
+    value_type: count
+    unit_type: count
+    dimensions: [new_study, planned_enrollment]
+    variables:
+      - {code: trial.new,               entity_type: trial, measure: count_new,         unit: count,   frequency: month}
+      - {code: trial.enrollment.planned, entity_type: trial, measure: planned_enrollment, unit: persons, frequency: month}
+
+  - id: InsuranceCatalogEntry
+    label_en: Insurance drug catalog entry
+    label_zh: 医保目录条目
+    description: >-
+      Membership of a drug in a national medical-insurance catalog edition,
+      sliced by catalog year (国家基本医疗保险、生育保险和工伤保险药品目录).
+      Sourced from the official PDF attachment of the publishing notice
+      (spiders/nrdl-national-catalog). A row identifies (catalog_year, section,
+      item_no) plus class A/B and the 限定支付范围 clause; catalog editions are
+      never overwritten, so two editions both replay (fact-ledger).
+      Hard boundary: this family carries classification only. Payment
+      standards / retail prices are out of scope by user ruling, and the unit
+      fails if any field matches an amount pattern.
+    value_type: count
+    unit_type: count
+    dimensions: [entry_count, class_a_share]
+    variables:
+      - {code: catalog.drug.entries,    entity_type: drug, measure: catalog_entries, unit: count,   frequency: annual}
+      - {code: catalog.drug.class_a_share, entity_type: drug, measure: class_a_share, unit: percent, frequency: annual}
+
+  # 以下三族为**声明式**（无 variables: 种子）——对应源当前不可达，播种会造出
+  # 没有任何源能填的 concepts 行（"声明≠挂载"）。载具一旦落地，再补 variables 种子。
+  - id: DrugApproval
+    label_en: Drug marketing approval
+    label_zh: 药品批准文号
+    description: >-
+      Declarative only: authorisations granted to drugs, keyed by 国药准字
+      number. The authoritative surface (NMPA 数据查询) actively blocks
+      automated access (412 under a real browser too), so this family is
+      declared for downstream derivation links without a seeded variable; see
+      openspec/changes/establish-pharma-domain-stack/SOURCE-FEASIBILITY.md.
+      Seeding unlocks when an accessible authoritative surface exists.
+    value_type: count
+    unit_type: count
+
+  - id: ReviewProgress
+    label_en: Regulatory review progress
+    label_zh: 审评进度
+    description: >-
+      Declarative only: the ordered state machine of a marketing application
+      keyed by acceptance number (受理号). CDE's data surfaces return 202 to
+      both scripts and a real browser, so no variable is seeded yet. A review
+      stage is a state machine, not an aggregatable measure — when seeded, the
+      measure is a stage-duration or a stage-reached count, never the stage
+      label itself.
+    value_type: count
+    unit_type: count
+
+  - id: MedicalInstitution
+    label_en: Medical institution directory
+    label_zh: 医疗机构名录
+    description: >-
+      Declarative only: the national directory of licensed hospitals, keyed by
+      institution code with grade and region. NHC returns 412 to automated
+      access, so no variable is seeded yet. Whether the directory exposes
+      department level is unverified (#13 in EXPECTED-SURFACE.md) and the
+      department surface is explicitly out of this batch.
+    value_type: count
+    unit_type: count
