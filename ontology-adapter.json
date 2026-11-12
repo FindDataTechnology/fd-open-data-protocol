@@ -1,0 +1,15 @@
+{
+  "kernel_contract": "1.0",
+  "adapters": [
+    {
+      "name": "fd-open-data-protocol",
+      "system": "fd-open-data-protocol",
+      "module": "fd_open_data_protocol.conformance_adapter",
+      "factory": "build",
+      "kernel_contract": "1.0",
+      "manifest_shape": 2,
+      "paths": ["."],
+      "notes": "this repo's own entry; the workspace-root adapters.json holds the multi-repo view"
+    }
+  ]
+}

@@ -56,8 +56,33 @@ class VocabularyError(ValueError):
 
 
 def build_uri(kind: str, entry_id: str) -> str:
-    """Return the stable URI for a vocabulary entry."""
+    """Return the stable URI for a vocabulary entry.
+
+    The construction rule is owned by the shared ontology kernel: a second
+    implementation is how two systems end up describing one concept with two
+    URIs. The fallback is byte-identical and exists only so this library installs
+    and runs where the workspace kernel is not present — it is not a second
+    definition, and the additive-release tests pin the two to agree.
+    """
+    kernel_uri_for = _kernel_uri_for()
+    if kernel_uri_for is not None:
+        return kernel_uri_for(kind, entry_id)
     return f"{SCHEMA_BASE_URI}/{kind}/{entry_id}"
+
+
+def _kernel_uri_for():
+    """The kernel's ``uri_for`` when it is importable, else ``None``.
+
+    The kernel is deliberately not a hard dependency: this library is installed
+    by services that never touch the workspace, and adding an unresolvable
+    dependency would break their installs (the same failure as adding a
+    third-party dep to a sys.path-imported package).
+    """
+    try:
+        from fd_ontology_kernel.vocab import uri_for
+    except ModuleNotFoundError:
+        return None
+    return uri_for
 
 
 def default_vocabulary_dir() -> Path:
@@ -306,8 +331,84 @@ def validate_vocabulary(dir: Optional[Union[str, Path]] = None) -> list[str]:
 
 # --- loading ----------------------------------------------------------------
 
-def load_vocabulary(dir: Optional[Union[str, Path]] = None) -> VocabularyRegistry:
-    """Load and validate the vocabulary, raising ``VocabularyError`` if invalid."""
+def load_vocabulary(
+    dir: Optional[Union[str, Path]] = None,
+    *,
+    baseline: Optional[Union[str, Path]] = None,
+) -> VocabularyRegistry:
+    """Load and validate the vocabulary, raising ``VocabularyError`` if invalid.
+
+    ``baseline`` names the previous release's directory. When given, the release
+    must be **additive** relative to it: removing an entry, dropping a whole file's
+    kind, or changing an entry's id is refused (retirement belongs in
+    ``superseded_by``). A first release has nothing to compare with, so the
+    default is no comparison.
+    """
+    registry = _load_registry(dir)
+    if baseline is not None:
+        _assert_additive(registry, _load_registry(baseline))
+    return registry
+
+
+def assert_additive(
+    current_dir: Optional[Union[str, Path]],
+    baseline_dir: Optional[Union[str, Path]],
+) -> None:
+    """Raise ``VocabularyError`` unless ``current_dir`` only adds to ``baseline_dir``."""
+    _assert_additive(_load_registry(current_dir), _load_registry(baseline_dir))
+
+
+def to_kernel_vocabulary(registry: VocabularyRegistry):
+    """Project this registry onto the kernel's closed-vocabulary shape.
+
+    One set per file kind, with the entry ids as the closed values — which is
+    exactly what the kernel needs to answer "is this value allowed" and "did a
+    release remove something".
+    """
+    from fd_ontology_kernel.vocab import Entry, Vocabulary, VocabularySet
+
+    sets = {}
+    for kind, entries in registry.entries.items():
+        values = tuple(entry.id for entry in entries)
+        sets[kind] = VocabularySet(
+            name=kind,
+            values=values,
+            entries={
+                entry.id: Entry(
+                    id=entry.id,
+                    set_name=kind,
+                    label_en=entry.label_en,
+                    label_zh=entry.label_zh,
+                    description=entry.description,
+                    superseded_by=entry.superseded_by,
+                )
+                for entry in entries
+            },
+        )
+    return Vocabulary(release=registry.version, sets=sets)
+
+
+def _assert_additive(current: VocabularyRegistry, baseline: VocabularyRegistry) -> None:
+    try:
+        from fd_ontology_kernel.errors import VocabEntryRemoved
+        from fd_ontology_kernel.vocab import assert_additive as kernel_assert_additive
+    except ModuleNotFoundError as exc:  # pragma: no cover - kernel is present here
+        raise VocabularyError(
+            "the additive-release check needs fd-ontology-kernel installed"
+        ) from exc
+
+    try:
+        kernel_assert_additive(
+            to_kernel_vocabulary(baseline), to_kernel_vocabulary(current)
+        )
+    except VocabEntryRemoved as exc:
+        raise VocabularyError(
+            f"vocabulary release {current.version!r} is not additive: {exc}"
+        ) from exc
+
+
+def _load_registry(dir: Optional[Union[str, Path]] = None) -> VocabularyRegistry:
+    """Load and validate without any release comparison (the historical behavior)."""
     errors = validate_vocabulary(dir)
     if errors:
         raise VocabularyError(

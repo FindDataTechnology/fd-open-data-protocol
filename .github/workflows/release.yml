@@ -34,6 +34,12 @@ jobs:
           /tmp/venv/bin/python -c "from fd_open_data_protocol.vocabulary import load_vocabulary, validate_vocabulary; errs = validate_vocabulary(); assert not errs, errs; vocab = load_vocabulary(); assert len(vocab.entity_type_ids()) >= 14, vocab.entity_type_ids(); assert vocab.get('concept', 'GDP'), 'GDP family missing'; print('vocabulary smoke OK:', vocab.version, len(vocab.concept_families()), 'families')"
           # Entity-type validation resolves from the shipped file.
           /tmp/venv/bin/python -c "from fd_open_data_protocol.schema import Entity; assert Entity(entity_type='country', code='CN').entity_type == 'country'; print('schema smoke OK')"
+      # establish-ontology-kernel 8.1：本体的不变量在发布前必须体检。内核不是 pip
+      # 可解析的包（仓里没有 git remote、PyPI 也没有），所以按 vendored wheel 装。
+      - name: Ontology conformance gate
+        run: |
+          /tmp/venv/bin/python -m pip install vendor/*.whl
+          /tmp/venv/bin/python scripts/ontology_gate.py
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
         with:
