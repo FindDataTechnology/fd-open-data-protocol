@@ -31,4 +31,11 @@ include = ["fd_open_data_protocol", "fd_open_data_protocol.*"]
 # The semantic vocabulary ships as package data so `load_vocabulary()` works
 # from an installed copy, outside any checkout.
 [tool.setuptools.package-data]
-fd_open_data_protocol = ["vocabulary/*.yaml", "vocabulary/crosswalks/*.yaml"]
+fd_open_data_protocol = [
+    "vocabulary/*.yaml",
+    "vocabulary/crosswalks/*.yaml",
+    # Cross-layer alignment lives one level deeper than the six pinned
+    # vocabulary files; without this line it is silently absent from the
+    # wheel and `load_alignment()` always returns empty.
+    "vocabulary/alignment/*.yaml",
+]
