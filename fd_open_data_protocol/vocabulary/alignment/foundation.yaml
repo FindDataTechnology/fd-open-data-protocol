@@ -1,0 +1,65 @@
+# FindData vocabulary — cross-layer alignment with the ontology foundation.
+#
+# The observation layer (this package: country/stock/GDP/…) and the platform's
+# business-ontology foundation (`organization`/`person`/`place`/…) describe the
+# same referents from different lifecycles. `company` here is an *object being
+# observed* — it has tickers and an identifiers table; `organization` there is a
+# *party to transactions* — it has customers and contracts. They must NOT be
+# merged: merging forces one side to accept the other's release cycle, and both
+# sides can name a counterexample.
+#
+# So this file declares equivalence and nothing else. It is **not** consumed by
+# the vocabulary loader (whose six YAML files are pinned by golden digests and
+# must not change); it is read by the platform's template importer
+# (`law-bench-internal/scripts/import_protocol_ontology.py`), which turns each
+# entry into an `aligned_with` block on the observation-layer template.
+#
+# Adding an entry here never changes an entity type, a concept, or a digest. It
+# only tells a reader "these two words point at one thing".
+version: "2026.11"
+kind: alignment
+target:
+  template: foundation-v1
+  layer: foundation
+alignments:
+  # --- organizations ---------------------------------------------------------
+  - from: company
+    to: organization
+    note: >-
+      A listed company is an organization that is also an observed object. The
+      observation layer keys it by exchange-suffixed ticker; the foundation keys
+      it by a business identity. Same referent, two lifecycles.
+  - from: organization
+    to: organization
+    note: Identical word both sides; declared so the mapping is explicit, not inferred.
+  - from: institution
+    to: organization
+    note: Universities, hospitals, agencies — an organization with a different role.
+
+  # --- places ----------------------------------------------------------------
+  - from: city
+    to: place
+    note: Keyed by DCID or GeoNames id here; by admin hierarchy there.
+  - from: port
+    to: place
+    note: >-
+      A port is a place with an operational role. It stays its own observation
+      type (trade statistics key on it) but lands on `place` in the foundation.
+  - from: venue
+    to: place
+    note: Exchange venues are places in the physical sense only when they have one.
+
+  # --- people ----------------------------------------------------------------
+  - from: person
+    to: person
+    note: Identical word both sides.
+  - from: author
+    to: person
+    note: An author is a person in a role; the role is the relationship, not a type.
+
+# Deliberately NOT aligned (recorded so a later reader does not "fix" them):
+#   stock / fund / bond / index / future / commodity / currency_pair
+#     — these are *instruments*, not organizations. `instrument` is an industry-
+#       layer type; the alignment belongs there, not on the foundation.
+#   industry / topic / policy / approval
+#     — classification axes with no foundation counterpart.

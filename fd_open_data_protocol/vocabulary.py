@@ -448,3 +448,44 @@ def _load_registry(dir: Optional[Union[str, Path]] = None) -> VocabularyRegistry
     return VocabularyRegistry(
         version=version, entries=entries, mappings=mappings, source_dir=d,
     )
+
+
+# --- cross-layer alignment ---------------------------------------------------
+#
+# The six vocabulary files above are pinned by golden digests: their content is
+# what every published release means, and changing a byte would invalidate work
+# that has already shipped. Alignment declarations are a different kind of
+# statement — "this word here and that word there point at one thing" — so they
+# live in their own directory and are read by a separate entry point. Nothing
+# here feeds back into `load_vocabulary`, so no digest moves.
+
+def load_alignment(name: str = "foundation", dir: Optional[Union[str, Path]] = None) -> dict:
+    """Read one cross-layer alignment declaration.
+
+    Returns ``{"target": {...}, "alignments": {from: {to, note}}}``, or an empty
+    mapping when the file does not exist. **Absent is not an error**: an older
+    checkout that predates the alignment file is still a valid vocabulary, and
+    refusing to load it would turn an optional declaration into a hard
+    dependency.
+    """
+    base = Path(dir) if dir is not None else Path(__file__).resolve().parent / "vocabulary"
+    path = base / "alignment" / f"{name}.yaml"
+    if not path.exists():
+        return {"target": {}, "alignments": {}}
+    body = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    entries = body.get("alignments") or []
+    if not isinstance(entries, list):
+        raise VocabularyError(
+            f"alignment {path}: 'alignments' must be a list of {{from, to}} entries"
+        )
+    out: dict[str, dict] = {}
+    for entry in entries:
+        if not isinstance(entry, dict) or not entry.get("from") or not entry.get("to"):
+            raise VocabularyError(
+                f"alignment {path}: every entry needs non-empty 'from' and 'to'"
+            )
+        out[str(entry["from"])] = {
+            "to": str(entry["to"]),
+            "note": entry.get("note", ""),
+        }
+    return {"target": body.get("target") or {}, "alignments": out}
