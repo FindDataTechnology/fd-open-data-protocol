@@ -22,6 +22,8 @@ def assemble(
     auth_cache_ttl_seconds: float = 60.0,
     mcp_path: str = "/mcp",
     enable_surface_report: bool = True,
+    gate_cls: Callable[[Any, AuthGate], Any] | None = None,
+    manifest_anchor: str | None = None,
 ):
     """返回完整 ASGI app：/health 与线自描述免门，其余走鉴权门（无 Bearer 拒）。
 
@@ -30,12 +32,19 @@ def assemble(
     :param mcp_path: MCP 端点路径
     :param enable_surface_report: 是否在首请求触发 `surface_report.ensure_started`。
         该机制要求服务对象带 `_surface_report` 属性；本模块会初始化它。
+    :param gate_cls: 鉴权门中间件类，签名 `(app, gate)`。默认用共享实现；
+        消费仓传入自己 re-export 的那个名字，使测试 `monkeypatch.setattr(server,
+        "AuthGateMiddleware", …)` 能真的替换掉本函数里用的类。
+    :param manifest_anchor: 用来定位消费仓 `line-manifest.json` 的文件路径。
+        **消费仓必须传自己的**（通常 `__file__`）：不传就按 protocol 包的
+        位置推导，仓根会算错（见 `wellknown.manifest_candidates`）。
     """
     mcp = build_mcp()
     if enable_surface_report and not hasattr(mcp, "_surface_report"):
         mcp._surface_report = "not_configured"
     mcp_app = mcp.http_app(path=mcp_path)
-    gate = AuthGateMiddleware(mcp_app, AuthGate(auth_cache_ttl_seconds))
+    _gate_cls = gate_cls or AuthGateMiddleware
+    gate = _gate_cls(mcp_app, AuthGate(auth_cache_ttl_seconds))
 
     if enable_surface_report:
         from fd_open_data_protocol import surface_report as _sr
@@ -61,7 +70,7 @@ def assemble(
             # 线自描述：公开元数据，必须在鉴权门**之前**应答（与 /health 同理），
             # 否则平台/客户在未持有本线凭据时连「这条线认哪些钥匙」都读不到。
             if path == WELL_KNOWN_PATH.rstrip("/"):
-                status, body, headers = manifest_response()
+                status, body, headers = manifest_response(manifest_anchor)
                 await send({"type": "http.response.start", "status": status,
                             "headers": headers + [(b"content-length", str(len(body)).encode())]})
                 await send({"type": "http.response.body", "body": body})

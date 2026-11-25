@@ -130,3 +130,42 @@ def test_two_lines_dont_share_env():
     L = make_settings_class("LEX_OPS", "https://lex.example")
     assert W.from_env({"LEX_OPS_BASE_URL": "https://lex.example"}).base_url == "https://wire.example"
     assert L.from_env({"WIRE_OPS_BASE_URL": "https://wire.example"}).base_url == "https://lex.example"
+
+
+# ── wellknown 的 anchor ───────────────────────────────────────────────────
+
+def test_manifest_candidates_anchor_controls_repo_root(tmp_path):
+    """anchor 决定仓根：传消费仓的 server.py，清单路径就在那个仓里。
+
+    这个参数是本模块的**必要**接口而不是可选装饰：不传 anchor 时用 protocol 包自己的
+    `__file__` 推仓根，会把五个消费仓的清单指到 fd_open_data_protocol/ 下（2026-11-25
+    在 lex-ops 的 CI 上实测：manifest_path() 返回 protocol 包里的路径）。
+    """
+    from fd_open_data_protocol.line_ops.wellknown import manifest_candidates
+
+    fake_repo = tmp_path / "wire_ops_mcp"
+    fake_repo.mkdir()
+    anchor = fake_repo / "server.py"
+    anchor.write_text("")
+    cands = manifest_candidates(anchor)
+    assert cands[0] == fake_repo.parent / "line-manifest.json", cands
+
+
+def test_manifest_path_env_override_wins(tmp_path, monkeypatch):
+    from fd_open_data_protocol.line_ops.wellknown import LINE_MANIFEST_ENV, manifest_path
+
+    target = tmp_path / "explicit.json"
+    target.write_text("{}")
+    monkeypatch.setenv(LINE_MANIFEST_ENV, str(target))
+    assert manifest_path() == target
+
+
+def test_assemble_accepts_gate_cls_and_manifest_anchor():
+    """assemble 的参数是消费仓的契约：gate_cls 让测试能替换门，manifest_anchor 定仓根。"""
+    import inspect
+
+    from fd_open_data_protocol.line_ops import assemble
+
+    params = inspect.signature(assemble).parameters
+    assert "gate_cls" in params
+    assert "manifest_anchor" in params

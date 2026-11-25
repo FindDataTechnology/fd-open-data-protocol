@@ -15,18 +15,23 @@ LINE_MANIFEST_ENV = "LINE_MANIFEST_PATH"
 MANIFEST_CACHE_CONTROL = "public, max-age=300"
 
 
-def manifest_candidates() -> list[Path]:
+def manifest_candidates(anchor: Path | str | None = None) -> list[Path]:
     """按优先级列出可能放清单的位置（`LINE_MANIFEST_PATH` 一项即封顶）。
 
     为什么要链而不是一条：**pip 装进去的包与源码树的 `__file__` 不同**。镜像是
     console script 起的，`__file__` 落在 site-packages，`parents[1]` 根本不是仓根——
     清单就在 `/app/line-manifest.json` 却读不到（lex 线 2026-11-11 真机 404，
     源码运行验不出来）。所以源码树、CWD（镜像 WORKDIR）、与包同级三处依次找。
+
+    :param anchor: 用来推导「仓根」的文件路径。**消费仓必须传自己的**
+        （通常是该仓 `server.py` 的 `__file__`）：不传就用本模块的 `__file__`，
+        那会指向 protocol 包自己的目录，算出来的仓根是错的（2026-11-25 实测：
+        五个消费仓的 `manifest_path()` 全部指到 protocol 包里）。
     """
     override = os.environ.get(LINE_MANIFEST_ENV)
     if override:
         return [Path(override)]
-    here = Path(__file__).resolve()
+    here = Path(anchor).resolve() if anchor is not None else Path(__file__).resolve()
     return [
         here.parents[1] / "line-manifest.json",  # 源码树 / 镜像里包与清单同根
         Path.cwd() / "line-manifest.json",       # pip 装的包：CWD 才是仓根
@@ -34,23 +39,23 @@ def manifest_candidates() -> list[Path]:
     ]
 
 
-def manifest_path() -> Path:
+def manifest_path(anchor: Path | str | None = None) -> Path:
     """实际取用的清单路径；都不存在时返回首选位置（让 404 能点名期望路径）。"""
-    candidates = manifest_candidates()
+    candidates = manifest_candidates(anchor)
     for candidate in candidates:
         if candidate.exists():
             return candidate
     return candidates[0]
 
 
-def manifest_response() -> tuple[int, bytes, list[tuple[bytes, bytes]]]:
+def manifest_response(anchor: Path | str | None = None) -> tuple[int, bytes, list[tuple[bytes, bytes]]]:
     """(status, body, extra_headers) —— 不读网络、不建会话。
 
     缺失=404（该线未发布清单，属配置事实）；存在但不可解析=500（属缺陷，不能
     伪装成 404 让调用方以为「本来就没有」）。
     """
     json_headers = [(b"content-type", b"application/json; charset=utf-8")]
-    path = manifest_path()
+    path = manifest_path(anchor)
     try:
         raw = path.read_bytes()
     except FileNotFoundError:

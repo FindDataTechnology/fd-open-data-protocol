@@ -83,6 +83,11 @@ class LineClient:
             raise self._error(
                 "unreachable", None, f"{self._label}服务不可达：{type(e).__name__}: {e}"
             ) from e
+        return self._resolve(res)
+
+    def _resolve(self, res) -> Any:
+        """状态码 → 值或错误。子类扩额外端点（如 multipart 上传）时复用它，
+        免得把这张映射表复制一遍（复制必然漂移）。"""
         if res.status_code == 401:
             raise self._error("unauthorized", 401, _detail(res))
         if res.status_code == 402:
@@ -98,7 +103,8 @@ class LineClient:
         if res.status_code == 429:
             raise self._error("rate_limited", 429, _detail(res))
         if res.status_code >= 500:
-            raise self._error("unreachable", res.status_code, f"{self._label}服务错误：{_detail(res)}")
+            raise self._error("unreachable", res.status_code,
+                              f"{self._label}服务错误：{_detail(res)}")
         if res.status_code >= 400:
             raise self._error("invalid", res.status_code, _detail(res))
         if not res.content:
